@@ -13,3 +13,7 @@ Running. Go to the folder where app.py is and simply enter
 python app.py
 ```
 The server will start on localhost:5000
+<br /><br/>
+A brief description of what the app does. You can create interactive mind maps or similar and replay sequences while seeing descriptions for each step (node) in the corner of the screen. Here's an example of such a decision graph.
+
+![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/description%20of%20demo.png?raw=true)
