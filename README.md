@@ -173,12 +173,12 @@ curl -X PUT http://localhost:5000/api/nodes/1 ^
      -d "{ \"name\": \"new name and location test\",\"x\": 200,\"y\": 100}"
 ```
 
-- update ( edit ) description field to change the playback direction for a node ID 1
+- update ( edit ) description field to change the playback direction for a node ID 13 to 17
 
 ```
-curl -X PUT http://localhost:5000/api/nodes/1 ^
+curl -X PUT http://localhost:5000/api/nodes/13 ^
      -H "Content-Type: application/json" ^
-     -d "{ \"name\": \"new name and location test\",\"x\": 200,\"y\": 100}"
+     -d ""{\"description\":\"#17\"}"
 ```
 
 <h3>Real life scenario</h3>
