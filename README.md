@@ -18,3 +18,5 @@ A brief description of what the app does. If you've heard the term "mind maps" o
 
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/description%20of%20demo.png?raw=true)
+
+If you want to change something, just download it and do it. This is the base code.
