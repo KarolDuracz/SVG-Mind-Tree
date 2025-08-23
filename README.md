@@ -181,6 +181,14 @@ curl -X PUT http://localhost:5000/api/nodes/13 ^
      -d ""{\"description\":\"#17\"}"
 ```
 
+- update ( edit ) existing node ID 3 and change name, text field and location to (400, 400)
+
+```
+curl -X PUT http://localhost:5000/api/nodes/3 ^
+     -H "Content-Type: application/json" ^
+     -d "{ \"name\": \"new name for ID 3\", \"text\": \" abcd text text\", \"x\": 400,\"y\": 400}"
+```
+
 <h3>Real life scenario</h3>
 
 1. Scenario if you want to change direction but you don't have a connection created yet (i.e. this sets the connection between #14 and #4)
