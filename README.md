@@ -66,7 +66,7 @@ curl -X POST http://localhost:5000/api/nodes \
          }'
 ```
 
-NODES : # Create and connect to an existing node ( crate new branch from existing #1 )
+NODES : # Create and connect to an existing node ( create new branch from existing #1 )
 
 ```
 curl -X POST http://localhost:5000/api/nodes \
@@ -103,7 +103,7 @@ CONNECTIONS : # Get all connections
 curl http://localhost:5000/api/connections
 ```
 
-CONNECTIONS : # Create a connetion ( ID 1 to ID 2 )
+CONNECTIONS : # Create a connection ( ID 1 to ID 2 )
 
 ```
 curl -X POST http://localhost:5000/api/connections \
@@ -115,7 +115,7 @@ curl -X POST http://localhost:5000/api/connections \
          }'
 ```
 
-CONNECTIONS : Delete a connetion ( delete ID 1 )
+CONNECTIONS : Delete a connection ( delete ID 1 )
 
 ```
 curl -X DELETE http://localhost:5000/api/connections/1
@@ -149,7 +149,7 @@ curl -X POST http://localhost:5000/api/nodes `
 
 <h3>Some examples for CMD</h3>
 
-- new node and connection ( crate new branch from existing #13 )
+- new node and connection ( create new branch from existing #13 )
 
 ```
 curl -X POST http://localhost:5000/api/nodes ^
@@ -183,7 +183,7 @@ curl -X PUT http://localhost:5000/api/nodes/1 ^
 
 <h3>Real life scenario</h3>
 
-1. Scenario if you want to change direction but you don't have a connection created yet (i.e. this sets the connection between #14 and #4
+1. Scenario if you want to change direction but you don't have a connection created yet (i.e. this sets the connection between #14 and #4)
 
 ```
 curl -X PUT http://localhost:5000/api/nodes/14 -H "Content-Type: application/json" -d "{\"description\":\"#4\"}"
@@ -197,7 +197,7 @@ curl -X POST http://localhost:5000/api/connections ^
      -d "{\"source\": 14,\"target\": 4,\"metadata\": \"manual link\"}"
 ```
 
-3. now you can change direction ( update description field for #ID 14 for direction to #4
+3. now you can change direction (update description field for #ID 14 for direction to #4)
 
 ```
 curl -X PUT http://localhost:5000/api/nodes/14 -H "Content-Type: application/json" -d "{\"description\":\"#4\"}"
