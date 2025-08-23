@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SVG Mind Tree — Sequence & Branch Editor</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { --bg:#0f1724; --panel:#0b1220; --muted:#9aa4b2; --accent:#1976d2; --danger:#d32f2f; --glass: rgba(255,255,255,0.03); }
+    html,body { height:100%; margin:0; font-family:Inter, Arial, sans-serif; background:var(--bg); color:#e6eef6; overflow:hidden; }
+    #app { height:100%; display:flex; }
+    #left { width:360px; padding:12px; box-sizing:border-box; background:linear-gradient(180deg,var(--panel), #07101a); box-shadow: 12px 0 30px rgba(0,0,0,0.6); overflow:auto; }
+    #left h2 { margin:6px 0 10px 0; font-size:18px; }
+    button { border:none; border-radius:6px; padding:8px 10px; cursor:pointer; font-weight:600; }
+    .btn { background:var(--accent); color:white; display:block; width:100%; margin-bottom:8px; }
+    .btn.ghost { background:transparent; border:1px solid rgba(255,255,255,0.06); color:#cfe3ff; }
+    .btn.danger { background:var(--danger); }
+    .info { font-size:13px; color:var(--muted); margin-bottom:8px; }
+    .small { font-size:13px; color:#c9d6e8; }
+    .row { display:flex; gap:8px; margin-bottom:8px; }
+    input, textarea, select { width:100%; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:inherit; box-sizing:border-box; }
+    label { display:block; margin-bottom:6px; font-size:13px; color:var(--muted); }
+
+    #svgWrap { flex:1; position:relative; }
+    #svgCanvas { width:100%; height:100%; background: linear-gradient(180deg,#071219,#05101a); display:block; cursor:grab; }
+
+    /* UI panels inside canvas */
+    #topBanner { position:absolute; left:50%; transform:translateX(-50%); top:10px; background:rgba(0,0,0,0.6); padding:6px 10px; border-radius:8px; z-index:10; display:none; font-weight:700; }
+    #longtext { position:absolute; right:12px; bottom:12px; width:360px; max-height:40vh; overflow:auto; background:rgba(10,10,12,0.92); padding:12px; border-radius:8px; box-shadow:0 8px 30px rgba(0,0,0,0.6); display:none; z-index:20; }
+    #cameraControls { position:absolute; right:12px; top:12px; z-index:20; display:flex; gap:8px; }
+
+    /* node label */
+    .node-label { font-size:12px; fill:#eaf6ff; pointer-events:none; text-anchor:middle; dominant-baseline:middle; font-weight:700; text-shadow: 0 1px 0 rgba(0,0,0,0.6); }
+
+    /* modal */
+    .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); z-index:200; }
+    .modal .box { width:520px; max-width:96%; background:#071827; padding:14px; border-radius:8px; color:#e6eef6; box-shadow:0 8px 30px rgba(0,0,0,0.6); }
+    .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+
+    footer { position:absolute; left:12px; bottom:12px; color:var(--muted); font-size:13px; z-index:50; }
+
+    .linkish { background:transparent; color:var(--accent); border:1px solid rgba(25,118,210,0.18); }
+    .muted-block { color:var(--muted); font-size:13px; margin-top:6px; }
+    #allNodesList { max-height:160px; overflow:auto; font-size:13px; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="left">
+      <h2>SVG Mind Tree</h2>
+      <button id="createBtn" class="btn">+ Create Node</button>
+      <button id="genBtn" class="btn ghost">Generate Random Graph</button>
+      <button id="adminBtn" class="btn ghost">Admin Panel</button>
+      <button id="clearBtn" class="btn danger">Clear Scene</button>
+
+      <div class="info">Select a node to see details. Hold <strong>SHIFT</strong> then click another node to create a connection (selected → clicked).</div>
+
+      <h3 id="nodeTitle">No node selected</h3>
+      <div id="nodeInfo" class="small">
+        <div><strong>ID:</strong> <span id="nodeId">—</span></div>
+        <div><strong>Pos:</strong> <span id="nodePos">—</span></div>
+        <div><strong>Created:</strong> <span id="nodeCreated">—</span></div>
+        <div><strong>Desc:</strong> <div id="nodeDesc">—</div></div>
+        <div style="margin-top:8px;">
+          <button id="openUpdateBtn" class="btn ghost" style="display:none;">Edit Node</button>
+          <button id="createBranchBtn" class="btn linkish" style="display:none;">Create Branch</button>
+        </div>
+        <div style="margin-top:8px;">
+          <label>Quick select by ID</label>
+          <div class="row"><input id="quickSelectId" placeholder="#123" /><button id="quickSelectBtn" class="btn ghost">Go</button></div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>All nodes</label>
+          <div id="allNodesList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="svgWrap">
+      <div id="topBanner">Hold SHIFT + click another node to connect (selected → clicked)</div>
+
+      <div id="cameraControls">
+        <button id="fitBtn" class="btn ghost">Fit</button>
+        <button id="toggleLong" class="btn ghost">Toggle Long Text</button>
+        <button id="playBtn" class="btn ghost">Play ▶</button>
+      </div>
+
+      <svg id="svgCanvas" viewBox="-500 -350 1000 700" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="7" markerHeight="7" refX="7" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7 z" fill="#cbe4ff"/>
+          </marker>
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.6"/>
+          </filter>
+        </defs>
+        <g id="connections"></g>
+        <g id="nodes"></g>
+      </svg>
+
+      <div id="longtext"></div>
+
+      <!-- Create Node Modal -->
+      <div id="modal-create" class="modal"><div class="box">
+        <h3>Create Node</h3>
+        <label>Name <input id="formName" placeholder="Node name" /></label>
+        <label>Connect to (optional) <select id="formConnect"><option value="">(none)</option></select></label>
+        <label><input type="checkbox" id="formSequence" /> Create as sequence (linear)</label>
+        <label><input type="checkbox" id="formBranch" /> Create as branch</label>
+        <label>Branch side (left/right) <select id="formBranchSide"><option value="">(auto)</option><option value="left">left</option><option value="right">right</option></select></label>
+        <label>Description (short) <textarea id="formDesc" rows="2"></textarea></label>
+        <label>Text (long) <textarea id="formText" rows="4"></textarea></label>
+        <label>Coordinates (optional) <input id="formCoords" placeholder="x,y" /></label>
+        <div class="actions">
+          <button id="cancelCreate" class="btn ghost">Cancel</button>
+          <button id="submitCreate" class="btn">Create</button>
+        </div>
+      </div></div>
+
+      <!-- Update Node Modal -->
+      <div id="modal-update" class="modal"><div class="box">
+        <h3>Update Node <span id="updNodeLabel" class="small"></span></h3>
+        <label>Name <input id="updName" /></label>
+        <label>Description (short) <textarea id="updDesc" rows="2"></textarea></label>
+        <label>Text (long) <textarea id="updText" rows="4"></textarea></label>
+        <label>Coordinates (x,y) <input id="updCoords" placeholder="x,y" /></label>
+        <div class="actions">
+          <button id="cancelUpdate" class="btn ghost">Cancel</button>
+          <button id="submitUpdate" class="btn">Save</button>
+        </div>
+      </div></div>
+
+      <!-- Generate Modal -->
+      <div id="modal-gen" class="modal"><div class="box">
+        <h3>Generate Random Graph</h3>
+        <label>How many nodes? <input id="genCount" type="number" min="1" max="200" value="6" /></label>
+        <div class="actions">
+          <button id="cancelGen" class="btn ghost">Cancel</button>
+          <button id="submitGen" class="btn">Generate</button>
+        </div>
+      </div></div>
+
+    </div>
+  </div>
+
+  <footer>SVG Mind Tree — pan: drag background, zoom: wheel, connect: SHIFT + click</footer>
+
+<script>
+/* ---------- Core client logic (SVG-based editor) ---------- */
+
+const svg = document.getElementById('svgCanvas');
+const nodesG = document.getElementById('nodes');
+const connsG = document.getElementById('connections');
+const topBanner = document.getElementById('topBanner');
+const longtext = document.getElementById('longtext');
+
+let viewBox = { x: -500, y: -350, w: 1000, h: 700 };
+function setViewBox() { svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`); }
+setViewBox();
+
+// ------- missing helper added: escapeHtml -------
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, ch => {
+    return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch];
+  });
+}
+// -------------------------------------------------
+
+// pan/zoom state
+let isPanning = false, startPan = null;
+svg.addEventListener('mousedown', (e) => {
+  if (e.target === svg || e.target === svg.parentNode) {
+    isPanning = true; startPan = {x:e.clientX, y:e.clientY, vb:Object.assign({}, viewBox)};
+    svg.style.cursor = 'grabbing';
+  }
+});
+window.addEventListener('mousemove', (e) => {
+  if (!isPanning) return;
+  const dx = (e.clientX - startPan.x) * (viewBox.w / svg.clientWidth);
+  const dy = (e.clientY - startPan.y) * (viewBox.h / svg.clientHeight);
+  viewBox.x = startPan.vb.x - dx;
+  viewBox.y = startPan.vb.y - dy;
+  setViewBox();
+});
+window.addEventListener('mouseup', () => { isPanning = false; svg.style.cursor='grab'; });
+
+// wheel zoom (center under cursor)
+svg.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = svg.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const cx = viewBox.x + (mx / rect.width) * viewBox.w;
+  const cy = viewBox.y + (my / rect.height) * viewBox.h;
+  const zoomFactor = e.deltaY > 0 ? 1.12 : 0.88;
+  viewBox.w *= zoomFactor; viewBox.h *= zoomFactor;
+  viewBox.x = cx - (mx / rect.width) * viewBox.w;
+  viewBox.y = cy - (my / rect.height) * viewBox.h;
+  setViewBox();
+}, { passive:false });
+
+// data caches
+let nodesMap = new Map(); // id -> node
+let connsMap = new Map(); // id -> connection
+let selectedNodeId = null;
+let ctrlPressed = false;
+let shiftPressed = false;
+
+// PLAY state
+let isPlaying = false;
+let playIntervalMs = 1000;
+let playingNodeId = null;
+let playingPathEdgeIds = new Set();
+let playTimeout = null;
+const playBtn = document.getElementById('playBtn');
+
+// keyboard
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Shift') { shiftPressed = true; if (selectedNodeId) topBanner.style.display='block'; }
+  if (e.key === 'Control') ctrlPressed = true;
+  if (e.key === 'Escape') document.querySelectorAll('.modal').forEach(m => m.style.display='none');
+});
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'Shift') { shiftPressed = false; topBanner.style.display='none'; }
+  if (e.key === 'Control') ctrlPressed = false;
+});
+
+// ---------- Helper graph traversal utilities ----------
+
+function getOutgoing(nodeId) {
+  return Array.from(connsMap.values()).filter(c => Number(c.source) === Number(nodeId));
+}
+function getIncoming(nodeId) {
+  return Array.from(connsMap.values()).filter(c => Number(c.target) === Number(nodeId));
+}
+
+function findRoot(startNodeId) {
+  let current = startNodeId;
+  const seen = new Set();
+  while (true) {
+    if (seen.has(current)) break;
+    seen.add(current);
+    const inc = getIncoming(current);
+    if (!inc || inc.length === 0) break;
+    current = inc[0].source;
+  }
+  return current;
+}
+
+/*
+function chooseNextConnectionForNode(node) {
+  const outs = getOutgoing(node.id);
+  if (!outs || outs.length === 0) return null;
+  if (outs.length === 1) return outs[0];
+
+  const desc = (node.description || '').toLowerCase();
+  const wantYes = /\byes\b/.test(desc);
+  const wantNo = /\bno\b/.test(desc);
+  if (wantYes || wantNo) {
+    const wantStr = wantYes ? 'yes' : 'no';
+    for (const c of outs) {
+      const t = nodesMap.get(c.target);
+      if (!t) continue;
+      const txt = ((t.name || '') + ' ' + (t.description || '')).toLowerCase();
+      if (txt.includes(wantStr)) return c;
+    }
+  }
+  outs.sort((a,b) => a.id - b.id);
+  return outs[0];
+}
+*/
+
+function chooseNextConnectionForNode(node) {
+  const outs = getOutgoing(node.id);
+  if (!outs || outs.length === 0) return null;
+  if (outs.length === 1) return outs[0];
+
+  // 1) Primary rule: look for one or more "#<id>" tokens in the node description.
+  //    Example: "Follow #3" or "#1, #2" — it will try IDs in the order they appear.
+  const desc = (node.description || '');
+  const matches = Array.from(desc.matchAll(/\#\s*([0-9]+)/g)).map(m => Number(m[1]));
+
+  if (matches.length > 0) {
+    // Try each referenced ID in order and pick the outgoing connection that targets that ID.
+    for (const wantedId of matches) {
+      const found = outs.find(c => Number(c.target) === Number(wantedId));
+      if (found) return found;
+    }
+    // If description referenced IDs but none match current outgoing targets,
+    // we continue to fallback logic below (so you can add branches dynamically and update description).
+  }
+
+  // 2) (Legacy) If no #ID matched, fall back to deterministic choice:
+  //    pick the outgoing connection with the smallest connection id (stable).
+  outs.sort((a, b) => a.id - b.id);
+  return outs[0];
+}
+
+
+function traceSequenceFromRoot(rootId) {
+  const path = [];
+  const visitedNodes = new Set();
+  let currentId = rootId;
+  while (currentId != null && !visitedNodes.has(currentId)) {
+    visitedNodes.add(currentId);
+    const node = nodesMap.get(Number(currentId));
+    if (!node) break;
+    path.push(node);
+    const nextConn = chooseNextConnectionForNode(node);
+    if (!nextConn) break;
+    currentId = Number(nextConn.target);
+  }
+  return path;
+}
+
+function edgesForPathNodes(pathNodes) {
+  const edges = [];
+  for (let i = 0; i < pathNodes.length - 1; i++) {
+    const a = pathNodes[i];
+    const b = pathNodes[i+1];
+    const conn = Array.from(connsMap.values()).find(c => Number(c.source) === Number(a.id) && Number(c.target) === Number(b.id));
+    if (conn) edges.push(conn.id);
+  }
+  return edges;
+}
+
+// ---------- rendering ----------
+
+function renderNodes() {
+  nodesG.innerHTML = '';
+  for (const [id, n] of nodesMap.entries()) {
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('data-id', id);
+    g.setAttribute('transform', `translate(${n.x}, ${n.y})`);
+    g.style.cursor = 'pointer';
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('r', 18);
+
+    if (playingNodeId && Number(playingNodeId) === Number(id)) {
+      circle.setAttribute('fill', '#f1c40f');
+    } else if (Number(id) === Number(selectedNodeId)) {
+      circle.setAttribute('fill', '#ffb86b');
+    } else {
+      circle.setAttribute('fill', '#1976d2');
+    }
+
+    circle.setAttribute('stroke', 'rgba(255,255,255,0.06)');
+    circle.setAttribute('stroke-width', 1.5);
+    circle.setAttribute('filter', 'url(#shadow)');
+    g.appendChild(circle);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+    label.setAttribute('class', 'node-label');
+    label.textContent = `#${id} ${n.name||''}`;
+    label.setAttribute('y', 0);
+    g.appendChild(label);
+
+    g.addEventListener('mousedown', (ev) => { ev.stopPropagation(); });
+    g.addEventListener('click', (ev) => onNodeClick(ev, id));
+    g.addEventListener('dblclick', (ev) => { ev.stopPropagation(); openUpdateModal(id); });
+
+    let dragging = false, dragStart = null, orig = null;
+    g.addEventListener('pointerdown', (ev) => {
+      ev.preventDefault(); ev.stopPropagation();
+      dragging = true; g.setPointerCapture(ev.pointerId);
+      dragStart = {x:ev.clientX, y:ev.clientY};
+      orig = {x:n.x, y:n.y};
+    });
+    g.addEventListener('pointermove', (ev) => {
+      if (!dragging) return;
+      const rect = svg.getBoundingClientRect();
+      const dx = (ev.clientX - dragStart.x) * (viewBox.w / rect.width);
+      const dy = (ev.clientY - dragStart.y) * (viewBox.h / rect.height);
+      const nx = orig.x + dx;
+      const ny = orig.y + dy;
+      g.setAttribute('transform', `translate(${nx}, ${ny})`);
+    });
+    g.addEventListener('pointerup', async (ev) => {
+      if (!dragging) return;
+      dragging = false; g.releasePointerCapture(ev.pointerId);
+      const rect = svg.getBoundingClientRect();
+      const dx = (ev.clientX - dragStart.x) * (viewBox.w / rect.width);
+      const dy = (ev.clientY - dragStart.y) * (viewBox.h / rect.height);
+      const nx = orig.x + dx;
+      const ny = orig.y + dy;
+      await fetch(`/api/nodes/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ x: nx, y: ny })
+      });
+      await loadData();
+    });
+
+    nodesG.appendChild(g);
+  }
+}
+
+function renderConnections() {
+  connsG.innerHTML = '';
+  for (const [id, c] of connsMap.entries()) {
+    const s = nodesMap.get(c.source);
+    const t = nodesMap.get(c.target);
+    if (!s || !t) continue;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', s.x); line.setAttribute('y1', s.y);
+    line.setAttribute('x2', t.x); line.setAttribute('y2', t.y);
+    line.setAttribute('stroke', '#cbe4ff'); line.setAttribute('stroke-width', 2);
+    line.setAttribute('marker-end', 'url(#arrow)');
+    line.setAttribute('data-id', id);
+    line.setAttribute('data-src', c.source);
+    line.setAttribute('data-tgt', c.target);
+    if (playingPathEdgeIds && playingPathEdgeIds.has(Number(id))) {
+      line.setAttribute('stroke', '#2ecc71');
+      line.setAttribute('stroke-width', 4);
+      line.style.opacity = 1.0;
+    } else {
+      line.style.opacity = 0.85;
+    }
+    connsG.appendChild(line);
+  }
+}
+
+function renderAll() {
+  renderConnections();
+  renderNodes();
+  updateSelectedUI();
+}
+
+// ---------- Selection & interactions ----------
+
+function onNodeClick(ev, id) {
+  ev.stopPropagation();
+  if (shiftPressed && selectedNodeId && Number(selectedNodeId) !== Number(id)) {
+    createConnection(selectedNodeId, id);
+    topBanner.style.display = 'none';
+    shiftPressed = false;
+    return;
+  }
+  selectNode(id);
+}
+
+function selectNode(id) {
+  selectedNodeId = id;
+  if (!isPlaying) playingNodeId = null;
+  updateSelectedUI();
+  renderAll();
+}
+
+function updateSelectedUI() {
+  const title = document.getElementById('nodeTitle');
+  const idEl = document.getElementById('nodeId');
+  const posEl = document.getElementById('nodePos');
+  const created = document.getElementById('nodeCreated');
+  const desc = document.getElementById('nodeDesc');
+  if (!selectedNodeId) {
+    title.textContent = 'No node selected';
+    idEl.textContent = '—';
+    posEl.textContent = '—';
+    created.textContent = '—';
+    desc.textContent = '—';
+    document.getElementById('openUpdateBtn').style.display='none';
+    document.getElementById('createBranchBtn').style.display='none';
+    return;
+  }
+  const n = nodesMap.get(selectedNodeId);
+  if (!n) return;
+  title.textContent = `#${n.id} — ${n.name}`;
+  idEl.textContent = n.id;
+  posEl.textContent = `${(n.x||0).toFixed(1)}, ${(n.y||0).toFixed(1)}`;
+  created.textContent = n.created_at || '—';
+  desc.textContent = n.description || '—';
+  document.getElementById('openUpdateBtn').style.display='block';
+  document.getElementById('createBranchBtn').style.display='block';
+  if (n.text) showLongText(`#${n.id} — ${n.name}`, n.text);
+  else hideLongText();
+}
+
+
+/////////////// fixes
+//const createBranchBtn = document.getElementById('createBranchBtn');
+///  const modalCreate = document.getElementById('modal-create');
+
+  // Helper: open create modal but prefill as a branch from the selected node
+  function openBranchCreateModal(side = 'right') {
+    if (!selectedNodeId) return alert('Select a node first to create a branch from.');
+    document.getElementById('formName').value = `Branch from #${selectedNodeId}`;
+    document.getElementById('formDesc').value = '';
+    document.getElementById('formText').value = '';
+    document.getElementById('formCoords').value = '';
+    document.getElementById('formSequence').checked = false;
+    document.getElementById('formBranch').checked = true;
+    document.getElementById('formBranchSide').value = side || '';
+    // set connect select if it's been populated
+    const sel = document.getElementById('formConnect');
+    if (sel) {
+      // ensure the selected option exists (populateCreateSelect should have run)
+      if (![...sel.options].some(o => Number(o.value) === Number(selectedNodeId))) {
+        // if not present, add temporarily
+        const opt = document.createElement('option');
+        opt.value = String(selectedNodeId);
+        opt.text = `#${selectedNodeId} — (selected)`;
+        sel.appendChild(opt);
+      }
+      sel.value = String(selectedNodeId);
+    }
+    modalCreate.style.display = 'flex';
+  }
+
+  // Helper: create branch immediately (no modal) — quick test path.
+  async function createBranchQuick(side = 'right') {
+    if (!selectedNodeId) return alert('Select a node first to create a branch from.');
+    const payload = {
+      name: `Branch from #${selectedNodeId}`,
+      description: '',
+      text: '',
+      connect_to: Number(selectedNodeId),
+      branch: true,
+      branch_side: side
+    };
+    try {
+      const r = await fetch('/api/nodes', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) {
+        const txt = await r.text();
+        throw new Error(txt || r.status);
+      }
+      await loadData();
+      // select the most recently created node if possible
+      const created = await r.json();
+      if (created && created.id) selectNode(created.id);
+    } catch (err) {
+      alert('Failed to create branch: ' + err);
+    }
+  }
+
+  // click handler — support ctrl/command to quick-create
+  createBranchBtn.addEventListener('click', (ev) => {
+    // prefer ctrlKey or metaKey for quick create
+    const useQuick = ev.ctrlKey || ev.metaKey;
+    // determine side: if Shift/Alt pressed, toggle left/right — keep simple: Alt => left
+    const side = ev.altKey ? 'left' : 'right';
+    if (useQuick) {
+      createBranchQuick(side);
+    } else {
+      openBranchCreateModal(side);
+    }
+  });
+
+  // Optional: right-arrow / left-arrow keyboard support while modal open (keeps parity with prior UI)
+  window.addEventListener('keydown', (e) => {
+    if (modalCreate.style.display === 'flex') {
+      if (e.key === 'ArrowLeft') document.getElementById('formBranchSide').value = 'left';
+      if (e.key === 'ArrowRight') document.getElementById('formBranchSide').value = 'right';
+    }
+  });
+
+// ---------- Create / Update / Branch / Generate wiring ----------
+
+const modalCreate = document.getElementById('modal-create');
+document.getElementById('createBtn').addEventListener('click', async () => {
+  const now = new Date();
+  document.getElementById('formName').value = 'Node';
+  document.getElementById('formDesc').value = '';
+  document.getElementById('formText').value = '';
+  document.getElementById('formCoords').value = '';
+  document.getElementById('formSequence').checked = false;
+  document.getElementById('formBranch').checked = false;
+  document.getElementById('formBranchSide').value = '';
+  modalCreate.style.display = 'flex';
+  const nodes = await (await fetch('/api/nodes')).json();
+  populateCreateSelect(nodes);
+});
+document.getElementById('cancelCreate').addEventListener('click', () => modalCreate.style.display = 'none');
+document.getElementById('submitCreate').addEventListener('click', async () => {
+  const name = document.getElementById('formName').value || 'Node';
+  const connect_to_raw = document.getElementById('formConnect').value;
+  const connect_to = connect_to_raw ? parseInt(connect_to_raw) : null;
+  const isSeq = document.getElementById('formSequence').checked;
+  const isBranch = document.getElementById('formBranch').checked;
+  const branchSide = document.getElementById('formBranchSide').value || null;
+  const desc = document.getElementById('formDesc').value || null;
+  const text = document.getElementById('formText').value || null;
+  const coordsRaw = document.getElementById('formCoords').value.trim();
+  const payload = { name, description: desc, text };
+  if (connect_to) payload.connect_to = connect_to;
+  if (isSeq) payload.sequence = true;
+  if (isBranch) payload.branch = true;
+  if (branchSide) payload.branch_side = branchSide;
+  if (coordsRaw) {
+    const parts = coordsRaw.split(',').map(p => parseFloat(p.trim()));
+    if (parts.length===2 && parts.every(p=>!Number.isNaN(p))) {
+      payload.x = parts[0]; payload.y = parts[1];
+    }
+  }
+  const r = await fetch('/api/nodes', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  if (!r.ok) {
+    const txt = await r.text();
+    alert('Error creating node: ' + txt);
+  } else {
+    modalCreate.style.display='none';
+    await loadData();
+  }
+});
+
+function populateCreateSelect(nodes) {
+  const sel = document.getElementById('formConnect');
+  sel.innerHTML = '<option value="">(none)</option>' + nodes.map(n => `<option value="${n.id}">#${n.id} — ${escapeHtml(n.name)}</option>`).join('');
+  const updSel = document.getElementById('updConnect');
+  if (updSel) updSel.innerHTML = '<option value="">(none)</option>' + nodes.map(n => `<option value="${n.id}">#${n.id} — ${escapeHtml(n.name)}</option>`).join('');
+}
+
+const modalUpdate = document.getElementById('modal-update');
+document.getElementById('openUpdateBtn').addEventListener('click', async () => {
+  if (!selectedNodeId) return alert("No node selected");
+  openUpdateModal(selectedNodeId);
+});
+async function openUpdateModal(id) {
+  const r = await fetch(`/api/nodes/${id}`);
+  if (!r.ok) return alert("Failed to fetch node");
+  const node = await r.json();
+  document.getElementById('updNodeLabel').textContent = `#${node.id}`;
+  document.getElementById('updName').value = node.name || '';
+  document.getElementById('updDesc').value = node.description || '';
+  document.getElementById('updText').value = node.text || '';
+  document.getElementById('updCoords').value = `${node.x || 0}, ${node.y || 0}`;
+  modalUpdate.style.display = 'flex';
+}
+document.getElementById('cancelUpdate').addEventListener('click', () => modalUpdate.style.display = 'none');
+document.getElementById('submitUpdate').addEventListener('click', async () => {
+  if (!selectedNodeId) { modalUpdate.style.display = 'none'; return; }
+  const name = document.getElementById('updName').value || 'Node';
+  const desc = document.getElementById('updDesc').value || null;
+  const text = document.getElementById('updText').value || null;
+  const coordsRaw = document.getElementById('updCoords').value.trim();
+  const payload = { name, description: desc, text };
+  if (coordsRaw) {
+    const parts = coordsRaw.split(',').map(p => parseFloat(p.trim()));
+    if (parts.length === 2 && parts.every(p => !Number.isNaN(p))) {
+      payload.x = parts[0]; payload.y = parts[1];
+    }
+  }
+  const r = await fetch(`/api/nodes/${selectedNodeId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  if (!r.ok) {
+    const txt = await r.text();
+    alert('Error updating: ' + txt);
+  } else {
+    modalUpdate.style.display = 'none';
+    await loadData();
+  }
+});
+
+// GENERATE modal
+const modalGen = document.getElementById('modal-gen');
+document.getElementById('genBtn').addEventListener('click', () => modalGen.style.display = 'flex');
+document.getElementById('cancelGen').addEventListener('click', () => modalGen.style.display = 'none');
+document.getElementById('submitGen').addEventListener('click', async () => {
+  const count = parseInt(document.getElementById('genCount').value || '0', 10);
+  if (!count || count <= 0) { alert('Enter a valid positive number'); return; }
+  const r = await fetch('/api/generate_random', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ count }) });
+  if (r.status === 201) {
+    modalGen.style.display = 'none';
+    loadData();
+  } else {
+    const txt = await r.text();
+    alert('Error generating graph: ' + txt);
+  }
+});
+
+// admin & clear wiring
+document.getElementById('adminBtn').addEventListener('click', () => { window.location.href = '/admin'; });
+const clearSceneBtn = document.getElementById('clearBtn');
+function updateClearSceneButton(nodes) {
+  if (Array.isArray(nodes) && nodes.length > 0) clearSceneBtn.disabled = false;
+  else clearSceneBtn.disabled = true;
+}
+clearSceneBtn.addEventListener('click', async () => {
+  const ok = confirm('Delete all nodes and connections from the scene? This will clear the database. Are you sure?');
+  if (!ok) return;
+  const typed = prompt('Type DELETE to confirm clearing the entire database.');
+  if (typed !== 'DELETE') { alert('Confirmation mismatch — aborted.'); return; }
+  try {
+    const resp = await fetch('/api/admin/clear', { method: 'POST' });
+    if (resp.ok) {
+      await loadData();
+      selectNode(null);
+      alert('Scene cleared.');
+    } else {
+      const txt = await resp.text();
+      alert('Failed to clear scene: ' + txt);
+    }
+  } catch (err) {
+    alert('Error clearing scene: ' + err);
+  }
+});
+
+// Quick select
+document.getElementById('quickSelectBtn').addEventListener('click', async () => {
+  const raw = document.getElementById('quickSelectId').value.trim();
+  if (!raw) return;
+  const m = raw.match(/^#\s*([0-9]+)$/) || raw.match(/^([0-9]+)$/);
+  if (!m) return alert('Enter an ID in the form #123 or 123');
+  const id = parseInt(m[1], 10);
+  if (!nodesMap.has(id)) await loadData();
+  const n = nodesMap.get(id);
+  if (n) {
+    animateViewTo(n.x, n.y, () => selectNode(id));
+  } else {
+    alert('Node not found');
+  }
+});
+
+function populateAllNodesList(nodes) {
+  const all = document.getElementById('allNodesList');
+  if (!nodes || !nodes.length) { all.innerHTML = '<div class="muted-block">No nodes</div>'; return; }
+  all.innerHTML = nodes.map(n => `<div style="padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.03)"><a href="#" onclick="(async()=>{ animateViewTo(${n.x},${n.y}); selectNode(${n.id}); })(); return false;" style="color:#cfe3ff; text-decoration:none;">#${n.id} — ${escapeHtml(n.name||'')}</a><div class="muted-block">${escapeHtml((n.description||'').slice(0,120))}</div></div>`).join('');
+}
+
+function animateViewTo(cx, cy, done=null) {
+  const start = Object.assign({}, viewBox);
+  const targetW = viewBox.w * 0.6;
+  const targetH = viewBox.h * 0.6;
+  const target = { x: cx - targetW/2, y: cy - targetH/2, w: targetW, h: targetH };
+  const t0 = performance.now();
+  const duration = 600;
+  function step(now) {
+    const t = Math.min(1, (now - t0) / duration);
+    const ease = t*(2-t);
+    viewBox.x = start.x + (target.x - start.x) * ease;
+    viewBox.y = start.y + (target.y - start.y) * ease;
+    viewBox.w = start.w + (target.w - start.w) * ease;
+    viewBox.h = start.h + (target.h - start.h) * ease;
+    setViewBox();
+    if (t < 1) requestAnimationFrame(step);
+    else if (done) done();
+  }
+  requestAnimationFrame(step);
+}
+
+// create connection
+async function createConnection(src, tgt) {
+  const r = await fetch('/api/connections', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ source: parseInt(src), target: parseInt(tgt) })
+  });
+  if (r.status === 201) {
+    await loadData();
+    selectNode(tgt);
+  } else {
+    const txt = await r.text();
+    alert('Failed to create connection: ' + txt);
+  }
+}
+
+// fit & toggle long text
+document.getElementById('fitBtn').addEventListener('click', () => {
+  if (!nodesMap.size) return;
+  let minx=1e9, miny=1e9, maxx=-1e9, maxy=-1e9;
+  for (const n of nodesMap.values()) {
+    minx = Math.min(minx, n.x); miny = Math.min(miny, n.y);
+    maxx = Math.max(maxx, n.x); maxy = Math.max(maxy, n.y);
+  }
+  const padding = 120;
+  const w = (maxx - minx) + padding*2;
+  const h = (maxy - miny) + padding*2;
+  viewBox = { x: minx - padding, y: miny - padding, w, h };
+  setViewBox();
+});
+document.getElementById('toggleLong').addEventListener('click', () => {
+  longtext.style.display = (longtext.style.display === 'block') ? 'none' : 'block';
+});
+
+function showLongText(title, txt) {
+  longtext.innerHTML = `<h3 style="margin:0 0 6px 0;">${escapeHtml(title)}</h3><div style="white-space:pre-wrap">${escapeHtml(txt)}</div>`;
+  longtext.style.display = 'block';
+}
+function hideLongText() { longtext.style.display = 'none'; }
+
+// ---------- PLAY / PAUSE handlers ----------
+
+playBtn.addEventListener('click', async () => {
+  if (isPlaying) {
+    stopPlaying();
+  } else {
+    let rootId = null;
+    if (selectedNodeId) {
+      rootId = findRoot(selectedNodeId);
+    } else {
+      for (const n of nodesMap.values()) {
+        const inc = getIncoming(n.id);
+        if (!inc || inc.length === 0) { rootId = n.id; break; }
+      }
+      if (rootId === null && nodesMap.size > 0) rootId = Array.from(nodesMap.keys())[0];
+    }
+    if (!rootId) return alert('No nodes to play.');
+    const pathNodes = traceSequenceFromRoot(rootId);
+    if (!pathNodes || pathNodes.length === 0) return alert('No sequence path found to play.');
+    startPlayingPath(pathNodes);
+  }
+});
+
+function startPlayingPath(pathNodes) {
+  playingPathEdgeIds = new Set(edgesForPathNodes(pathNodes).map(x => Number(x)));
+  isPlaying = true;
+  playBtn.textContent = 'Pause ⏸';
+  renderAll();
+  let idx = 0;
+  const stepLoop = async () => {
+    while (isPlaying && idx < pathNodes.length) {
+      const node = pathNodes[idx];
+      playingNodeId = Number(node.id);
+      selectNode(node.id);
+      await new Promise(res => {
+        playTimeout = setTimeout(res, playIntervalMs);
+      });
+      idx++;
+    }
+    stopPlaying();
+  };
+  stepLoop().catch(err => { console.error(err); stopPlaying(); });
+}
+
+function stopPlaying() {
+  isPlaying = false;
+  playingNodeId = null;
+  playingPathEdgeIds = new Set();
+  if (playTimeout) { clearTimeout(playTimeout); playTimeout = null; }
+  playBtn.textContent = 'Play ▶';
+  renderAll();
+}
+
+// stop playing when modals canceled or page unload
+document.getElementById('cancelCreate').addEventListener('click', () => { if (isPlaying) stopPlaying(); });
+document.getElementById('cancelUpdate').addEventListener('click', () => { if (isPlaying) stopPlaying(); });
+document.getElementById('cancelGen').addEventListener('click', () => { if (isPlaying) stopPlaying(); });
+window.addEventListener('beforeunload', () => { if (isPlaying) stopPlaying(); });
+
+// ---------- Data loading ----------
+
+async function loadData() {
+  const nodesResp = await fetch('/api/nodes');
+  const connsResp = await fetch('/api/connections');
+  const nodes = await nodesResp.json();
+  const conns = await connsResp.json();
+  nodesMap.clear(); connsMap.clear();
+  nodes.forEach(n => nodesMap.set(n.id, n));
+  conns.forEach(c => connsMap.set(c.id, c));
+  renderAll();
+  populateAllNodesList(nodes);
+  populateCreateSelect(nodes);
+  updateClearSceneButton(nodes);
+}
+function updateClearSceneButton(nodes) {
+  document.getElementById('clearBtn').disabled = !(Array.isArray(nodes) && nodes.length>0);
+}
+
+// initial load
+loadData();
+
+// expose for debugging / inline usage
+window.selectNode = selectNode;
+window.openUpdateModal = openUpdateModal;
+window.traceSequenceFromRoot = traceSequenceFromRoot;
+window.findRoot = findRoot;
+
+</script>
+</body>
+</html>
