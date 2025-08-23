@@ -172,3 +172,41 @@ curl -X PUT http://localhost:5000/api/nodes/1 ^
      -H "Content-Type: application/json" ^
      -d "{ \"name\": \"new name and location test\",\"x\": 200,\"y\": 100}"
 ```
+
+- update ( edit ) description field to change the playback direction for a node ID 1
+
+```
+curl -X PUT http://localhost:5000/api/nodes/1 ^
+     -H "Content-Type: application/json" ^
+     -d "{ \"name\": \"new name and location test\",\"x\": 200,\"y\": 100}"
+```
+
+<h3>Real life scenario</h3>
+
+1. Scenario if you want to change direction but you don't have a connection created yet (i.e. this sets the connection between #14 and #4
+
+```
+curl -X PUT http://localhost:5000/api/nodes/14 -H "Content-Type: application/json" -d "{\"description\":\"#4\"}"
+```
+
+2. but if you don't have a connection yet, you need to create one first
+
+```
+curl -X POST http://localhost:5000/api/connections ^
+     -H "Content-Type: application/json" ^
+     -d "{\"source\": 14,\"target\": 4,\"metadata\": \"manual link\"}"
+```
+
+3. now you can change direction ( update description field for #ID 14 for direction to #4
+
+```
+curl -X PUT http://localhost:5000/api/nodes/14 -H "Content-Type: application/json" -d "{\"description\":\"#4\"}"
+```
+
+4. if the playback does not play in direction #14, change the previous node and playback path (in my case it is e.g. node ID 13)
+
+```
+curl -X PUT http://localhost:5000/api/nodes/13 -H "Content-Type: application/json" -d "{\"description\":\"#14\"}"
+```
+
+REMEMBER TO ADD # before ID {\"description\":\"#14\"}
