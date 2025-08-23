@@ -20,3 +20,155 @@ A brief description of what the app does. If you've heard the term "mind maps" o
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/description%20of%20demo.png?raw=true)
 
 If you want to change something, just download it and do it. This is base code.
+<h2>Some sample queries using CURL tool</h2>
+curl https://curl.se/
+<br /><br />
+
+Base URLs
+
+```
+UI Pages:
+
+http://localhost:5000/ → serves index.html
+
+http://localhost:5000/admin → serves admin.html
+
+API Root: http://localhost:5000/api/...
+```
+
+ADMIN : # Clear all nodes and connections
+
+```
+curl -X POST http://localhost:5000/api/admin/clear
+```
+
+NODES : # Get all nodes
+
+```
+curl http://localhost:5000/api/nodes
+```
+
+NODES: # Get a specific node (with connections) ID 1 for example
+
+```
+curl http://localhost:5000/api/nodes/1
+```
+
+NODES : # Create a node
+
+```
+curl -X POST http://localhost:5000/api/nodes \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "My Node",
+           "description": "Some description",
+           "text": "Long text here"
+         }'
+```
+
+NODES : # Create and connect to an existing node ( crate new branch from existing #1 )
+
+```
+curl -X POST http://localhost:5000/api/nodes \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "Child Node",
+           "connect_to": 1,
+           "sequence": true
+         }'
+
+```
+
+NODES: # Update a node ( update name and location for a node ID 1 )
+
+```
+curl -X PUT http://localhost:5000/api/nodes/1 \
+     -H "Content-Type: application/json" \
+     -d '{
+           "name": "Updated Name",
+           "x": 200,
+           "y": 100
+         }'
+```
+
+NODES : # Delete a node ID 1
+
+```
+curl -X DELETE http://localhost:5000/api/nodes/1
+```
+
+CONNECTIONS : # Get all connections
+
+```
+curl http://localhost:5000/api/connections
+```
+
+CONNECTIONS : # Create a connetion ( ID 1 to ID 2 )
+
+```
+curl -X POST http://localhost:5000/api/connections \
+     -H "Content-Type: application/json" \
+     -d '{
+           "source": 1,
+           "target": 2,
+           "metadata": "manual link"
+         }'
+```
+
+CONNECTIONS : Delete a connetion ( delete ID 1 )
+
+```
+curl -X DELETE http://localhost:5000/api/connections/1
+```
+
+Add random nodes and random connections
+
+```
+curl -X POST http://localhost:5000/api/generate_random \
+     -H "Content-Type: application/json" \
+     -d '{"count": 5}'
+```
+
+<h3>These are sample queries and now the version for WINDOWS -> CMD and Powershell</h3>
+
+CMD style with \" and ^ for multiline
+
+```
+curl -X POST http://localhost:5000/api/nodes ^
+  -H "Content-Type: application/json" ^
+  -d "{\"name\": \"My Node\", \"description\": \"Some description\", \"text\": \"Long text here\"}"
+```
+
+Powershell style 
+
+```
+curl -X POST http://localhost:5000/api/nodes `
+  -H "Content-Type: application/json" `
+  -d '{"name": "My Node", "description": "Some description", "text": "Long text here"}'
+```
+
+<h3>Some examples for CMD</h3>
+
+- new node and connection ( crate new branch from existing #13 )
+
+```
+curl -X POST http://localhost:5000/api/nodes ^
+     -H "Content-Type: application/json" ^
+     -d "{\"name\": \"#14 My Node\",\"connect_to\": 13, \"sequence\": \"true\"}"
+```
+
+- connect together existing #13 and #14
+
+```
+curl -X POST http://localhost:5000/api/connections ^
+     -H "Content-Type: application/json" ^
+     -d "{\"source\": 13,\"target\": 14,\"metadata\": \"manual link\"}"
+```
+
+- update name and location for a node ID 1
+
+```
+curl -X PUT http://localhost:5000/api/nodes/1 ^
+     -H "Content-Type: application/json" ^
+     -d "{ \"name\": \"new name and location test\",\"x\": 200,\"y\": 100}"
+```
