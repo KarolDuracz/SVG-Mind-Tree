@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Recorder — Allow Microphone</title>
+  <style>
+    body { font-family: Arial, padding: 12px; }
+    button { padding: 8px; margin-right: 8px; }
+    #status { margin-top: 10px; color: #333; }
+  </style>
+</head>
+<body>
+  <h3>Recorder — Allow Microphone</h3>
+  <p>This window is used to request microphone permission. Click the button below and then accept the browser prompt.</p>
+  <button id="requestBtn">Request Microphone Permission</button>
+  <button id="closeBtn">Close</button>
+  <div id="status">idle</div>
+
+  <!-- external script (required for MV3 CSP) -->
+  <script src="recorder.js"></script>
+</body>
+</html>

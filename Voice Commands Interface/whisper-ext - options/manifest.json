@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Whisper Microphone Demo",
+  "version": "0.2",
+  "description": "Record on voice, stop after 2s silence, send to Whisper server and show transcription",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Whisper Demo"
+  },
+  "permissions": [
+    "storage",
+    "downloads"
+  ],
+  "host_permissions": [
+    "http://localhost:5000/*"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
+}
