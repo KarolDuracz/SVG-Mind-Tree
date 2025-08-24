@@ -1,7 +1,7 @@
 > [!WARNING]  
 > I don't have much experience using Whisper or building browser extensions. Especially when it comes to sound settings in systems like Windows 8.1 <> Windows 10/11. There are also settings for the system's microphone, sound card, inputs, and so on. Furthermore, from what I've learned, browser extensions in newer systems have different functions and methods. So, there's no guarantee it will work on your system. This is just a demo to show how it can be solved this way.
 
-<h2>This is for informational purposes only. This requires deeper investigation. For tests only.</h2>
+<h2>This is for informational purposes only. This requires deeper investigation. For tests only. AND THIS IS NOT CONNECTED TO SVG-Mind-Tree. For tests only. </h2>
 
 <h2>Chrome extension + Whisper OpenAI</h2>
 
