@@ -284,6 +284,9 @@ Using Python scripts and the request library. Let's say we want to create a chai
 ```
 # pip install requests
 # python post_nodes.py
+#
+# Quickstart - how to get started with Requests - https://requests.readthedocs.io/en/latest/user/quickstart/
+#
 
 import requests
 
@@ -304,6 +307,8 @@ for i in range(loops):
     print(f"Request {i+1}: connect_to={connect_to}, status={response.status_code}, response={response.text}")
 
 ```
+
+
 
 <br /><br />
 There's no playback API. Like many other things, but you get the idea.
