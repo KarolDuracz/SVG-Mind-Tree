@@ -308,7 +308,7 @@ for i in range(loops):
 
 ```
 
-<h3>Trick is to quickly go to the NODE you are looking for</h3>
+<h3>Trick to quickly go to the NODE you are looking for</h3>
 In UI service running on a web browser, you'll see a little "search engine" on the left menu. Enter key in "Quick selection by ID" is not currently implemented. Now is the only way to click the "Go" button after entering the ID in the search box. However, if you know the node you're looking for, or you want to play and don't want to constantly zoom in and out, and scroll closer to the node, you can simply enter, for example, #127 in the box and press "GO" several times. Pressing it several times zooms in. Then, in the upper right corner, there's "FIT" to zoom out.
 
 
