@@ -219,5 +219,63 @@ curl -X PUT http://localhost:5000/api/nodes/13 -H "Content-Type: application/jso
 
 REMEMBER TO ADD # before ID {\"description\":\"#14\"}
 
+<h3>Real life scenario</h3>
+
+1. A few commands for windows cmd that can quickly list whether the descriptions fields have the correct names according to the pattern "# + DIGITS"
+
+```
+# This will show you a general overview of what's in the descriptions fields.
+# This can help you see the general overview of the descriptions values. There may be errors, such as missing the #, etc.
+curl http://localhost:5000/api/nodes | findstr /i "description"
+
+# There are two arguments here: "descriptions" and "id." You'll see a slightly larger log with the ID.
+curl http://localhost:5000/api/nodes | findstr /i "description id"
+
+# Displays only descriptions fields, only with values ​​that have # + 2 digits.
+curl http://localhost:5000/api/nodes | findstr /ri "description.*#[0-9][0-9]*"
+
+# Check if a specific ID is present in the list, e.g., #23 - if present, return occurrences (?); if absent, return 0.
+curl http://localhost:5000/api/nodes | findstr /i "description" | findstr "#23" | find /c /v ""
+
+# Count log lines from two arguments, "description id"
+curl http://localhost:5000/api/nodes | findstr /i "description id" | find /c /v ""
+```
+
+For example, in a scenario where the first node created in the node plan has ID #4, the root node. Subsequent root nodes were created and other nodes were connected to root ID 4. Now, ID 4 is not the starting node that starts the playback sequence. Only the nodes that were connected to it. This can be verified by knowing the root ID, for example.
+
+1. Displays information about Node #4
+   
+```
+# all information about node
+curl http://localhost:5000/api/nodes/4
+```
+
+2. The pattern is Source -> Target. So, if ID4 has a connection as TARGET from another node, it means it lies somewhere in the sequence. So this shorter listing will show the connection ID, source ID, and target ID. You can also check how many connections there are as TARGET to, for example, ID #4. Simply by eliminating this specific node, like this 4.
+
+```
+# only "id source target" extract from informations
+C:\curl\curl-8.15.0_4-win64-mingw\bin>curl http://localhost:5000/api/nodes/4 | findstr /i "id source target"
+
+# get number of lines for results for this command -> looking for pattern "target" : 4
+curl http://localhost:5000/api/nodes/4 | findstr /r "^[ ]*\"target\": 4$" | find /c /v ""
+
+# all matching results
+curl http://localhost:5000/api/nodes/4 | findstr /r "^[ ]*\"target\": 4$"
+```
+
+3. So, for example, I currently have a scenario where there are two connections to Node 4 from other nodes. But only one of them has a sequence to ID 4. In my case, that's Node 17.
+
+```
+curl http://localhost:5000/api/nodes/4
+```
+
+From this listing, I have the entire list of connection IDs and nodes. So, I can delete the connection between #17 and #4.
+
+```
+curl -X DELETE http://localhost:5000/api/connections/18
+```
+
+Because I know from this listing that there are 2 connections and what interests me here is connection ID 18. I simply delete it and the node with ROOT #4 executes the sequence from #4 again
+
 <br /><br />
 There's no playback API. Like many other things, but you get the idea.
