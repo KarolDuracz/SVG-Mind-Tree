@@ -279,7 +279,7 @@ Because I know from this listing that there are 2 connections and what interests
 
 <h3>Real life scenario</h3>
 
-Using Python scripts and the request library. Let's say we want to create a chain of connections, 20 at a time. We can do this through a Python script. Let's assume we want to add this string to ID 26, which already exists. But this naive approach only works if the IDs are actually duplicated. If they're heavily mixed up, it won't create a chain. Unless you go to the admin panel and look at the last node on the list, meaning the last ID, you can start adding IDs from that point. But this is just an example
+Using Python scripts and the request library. Let's say we want to create a chain of connections, 20 at a time. We can do this through a Python script. Let's assume we want to add this string to ID 26, which already exists. But this naive approach only works if the IDs are actually are in numerical order. If they're heavily mixed up, it won't create a chain. Unless you go to the admin panel and look at the last node on the list, meaning the last ID, you can start adding IDs from that point. But this is just an example.
 
 ```
 # pip install requests
