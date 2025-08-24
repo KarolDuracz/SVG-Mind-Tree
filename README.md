@@ -277,5 +277,32 @@ curl -X DELETE http://localhost:5000/api/connections/18
 
 Because I know from this listing that there are 2 connections and what interests me here is connection ID 18. I simply delete it and the node with ROOT #4 executes the sequence from #4 again
 
+<h3>Real life scenario</h3>
+
+Using Python scripts and the request library. Let's say we want to create a chain of connections, 20 at a time. We can do this through a Python script. Let's assume we want to add this string to ID 26, which already exists. But this naive approach only works if the IDs are actually duplicated. If they're heavily mixed up, it won't create a chain. Unless you go to the admin panel and look at the last node on the list, meaning the last ID, you can start adding IDs from that point. But this is just an example
+
+```
+# pip install requests
+# python add_20_items.py
+import requests
+
+url = "http://localhost:5000/api/nodes"
+headers = {"Content-Type": "application/json"}
+
+start_value = 26           # change start ID node
+loops = 20                 # number of nodes
+
+for i in range(loops):
+    connect_to = start_value + i
+    payload = {
+        "name": f"#{connect_to} My Node",
+        "connect_to": connect_to,
+        "sequence": "true"
+    }
+    response = requests.post(url, headers=headers, json=payload)
+    print(f"Request {i+1}: connect_to={connect_to}, status={response.status_code}, response={response.text}")
+
+```
+
 <br /><br />
 There's no playback API. Like many other things, but you get the idea.
