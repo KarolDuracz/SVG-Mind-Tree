@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Play & Analyze WebM Audio</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 480px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    input[type="file"] {
+      margin-bottom: 1rem;
+    }
+    audio {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    #info {
+      font-size: 1rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Play & Analyze WebM Audio</h1>
+
+  <input type="file" id="fileInput" accept="audio/webm" />
+  
+  <audio id="audioPlayer" controls></audio>
+  
+  <div id="info"></div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const info = document.getElementById('info');
+    const audioCtx = new AudioContext();
+
+    fileInput.addEventListener('change', async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Relaxed check: accept files with .webm extension (case insensitive)
+  if (!file.name.toLowerCase().endsWith('.webm')) {
+    info.textContent = 'Please select a valid .webm audio file.';
+    return;
+  }
+
+  // Create object URL for audio playback
+  const objectUrl = URL.createObjectURL(file);
+  audioPlayer.src = objectUrl;
+
+  info.textContent = 'Loading audio and decoding...';
+
+  try {
+    // Read file as array buffer
+    const arrayBuffer = await file.arrayBuffer();
+    // Decode audio data to get AudioBuffer
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+    info.textContent = `Audio duration: ${audioBuffer.duration.toFixed(2)} seconds`;
+  } catch (err) {
+    info.textContent = 'Error decoding audio file.';
+    console.error(err);
+  }
+});
+
+  </script>
+</body>
+</html>
