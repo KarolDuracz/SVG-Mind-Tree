@@ -12,9 +12,9 @@ Running. Go to the folder where app.py is and simply enter
 ```
 python app.py
 ```
-The server will start on localhost:5000
+Server will start on localhost:5000
 <br /><br/>
-A brief description of what the app does. If you've heard the term "mind maps" or "tree mind maps" that's the idea behind it. Only here, you build a graph dynamically, adding new nodes and changing decisions about how to play the sequence. Everything is saved in the .db database on disk. And if you fill in the TEXT field, you can add any text that will appear next to each node, for example, every 1000 ms (i.e., every 1 second, because that's the default setting, but you can change it in the source code). This is the variable let playIntervalMs = 1000; around line 212. You can create interactive mind maps or similar and replay sequences while seeing descriptions for each step (node) in the corner of the screen. Here's an example of such a decision graph. 
+A brief description of what app does. If you've heard term "mind maps" or "tree mind maps" that's the idea behind it. Only here, you build a graph dynamically, adding new nodes and changing decisions about how to play sequence. Everything is saved in .db database on disk. And if you fill in TEXT field, you can add any text that will appear next to each node, for example, every 1000 ms (i.e., every 1 second, because that's the default setting, but you can change it in source code). This is variable "let playIntervalMs = 1000;" around line 212 in index.html. You can create interactive mind maps or similar and replay sequences while seeing descriptions for each step (node) in the corner of the screen. Here's an example of such a decision graph. 
 
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/description%20of%20demo.png?raw=true)
@@ -129,7 +129,7 @@ curl -X POST http://localhost:5000/api/generate_random \
      -d '{"count": 5}'
 ```
 
-<h3>These are sample queries and now the version for WINDOWS -> CMD and Powershell</h3>
+<h3>These are sample queries, now version for WINDOWS -> CMD and Powershell</h3>
 
 CMD style with \" and ^ for multiline
 
@@ -173,7 +173,7 @@ curl -X PUT http://localhost:5000/api/nodes/1 ^
      -d "{ \"name\": \"new name and location test\",\"x\": 200,\"y\": 100}"
 ```
 
-- update ( edit ) description field to change the playback direction for a node ID 13 to 17
+- update ( edit ) description field to change playback direction for a node ID 13 to 17
 
 ```
 curl -X PUT http://localhost:5000/api/nodes/13 ^
@@ -191,7 +191,7 @@ curl -X PUT http://localhost:5000/api/nodes/3 ^
 
 <h3>Real life scenario</h3>
 
-1. Scenario if you want to change direction but you don't have a connection created yet (i.e. this sets the connection between #14 and #4)
+1. Scenario if you want to change direction but you don't have a connection created yet (i.e. this sets connection between #14 and #4)
 
 ```
 curl -X PUT http://localhost:5000/api/nodes/14 -H "Content-Type: application/json" -d "{\"description\":\"#4\"}"
@@ -221,11 +221,11 @@ REMEMBER TO ADD # before ID {\"description\":\"#14\"}
 
 <h3>Real life scenario</h3>
 
-1. A few commands for windows cmd that can quickly list whether the descriptions fields have the correct names according to the pattern "# + DIGITS"
+1. A few commands for windows cmd that can quickly list whether the descriptions fields have correct names according to pattern "# + DIGITS"
 
 ```
 # This will show you a general overview of what's in the descriptions fields.
-# This can help you see the general overview of the descriptions values. There may be errors, such as missing the #, etc.
+# This can help you see the general overview of the descriptions values. There may be errors, such as missing #, etc.
 curl http://localhost:5000/api/nodes | findstr /i "description"
 
 # There are two arguments here: "descriptions" and "id." You'll see a slightly larger log with the ID.
@@ -241,7 +241,7 @@ curl http://localhost:5000/api/nodes | findstr /i "description" | findstr "#23" 
 curl http://localhost:5000/api/nodes | findstr /i "description id" | find /c /v ""
 ```
 
-For example, in a scenario where the first node created in the node plan has ID #4, the root node. Subsequent root nodes were created and other nodes were connected to root ID 4. Now, ID 4 is not the starting node that starts the playback sequence. Only the nodes that were connected to it. This can be verified by knowing the root ID, for example.
+For example, in a scenario where the first node created in node plan has ID #4, the root node. Subsequent root nodes were created and other nodes were connected to root ID 4. Now, ID 4 is not starting node that starts the playback sequence. Only the nodes that were connected to it. This can be verified by knowing root ID, for example.
 
 1. Displays information about Node #4
    
@@ -250,7 +250,7 @@ For example, in a scenario where the first node created in the node plan has ID 
 curl http://localhost:5000/api/nodes/4
 ```
 
-2. The pattern is Source -> Target. So, if ID4 has a connection as TARGET from another node, it means it lies somewhere in the sequence. So this shorter listing will show the connection ID, source ID, and target ID. You can also check how many connections there are as TARGET to, for example, ID #4. Simply by eliminating this specific node, like this 4.
+2. The pattern is Source -> Target. So, if ID4 has a connection as TARGET from another node, it means it lies somewhere in sequence. So this shorter listing will show connection ID, source ID, and target ID. You can also check how many connections there are as TARGET to, for example, ID #4. Simply by eliminating this specific node, like this 4.
 
 ```
 # only "id source target" extract from informations
@@ -269,7 +269,7 @@ curl http://localhost:5000/api/nodes/4 | findstr /r "^[ ]*\"target\": 4$"
 curl http://localhost:5000/api/nodes/4
 ```
 
-From this listing, I have the entire list of connection IDs and nodes. So, I can delete the connection between #17 and #4.
+From this listing, I have the entire list of connection IDs and nodes. So, I can delete connection between #17 and #4.
 
 ```
 curl -X DELETE http://localhost:5000/api/connections/18
@@ -279,7 +279,7 @@ Because I know from this listing that there are 2 connections and what interests
 
 <h3>Real life scenario</h3>
 
-Using Python scripts and the request library. Let's say we want to create a chain of connections, 20 at a time. We can do this through a Python script. Let's assume we want to add this to ID 26, which already exists. But this naive approach only works if the IDs are actually are in numerical order. If they're heavily mixed up, it won't create a chain. Unless you go to the admin panel and look at the last node on the list, meaning the last ID, you can start adding IDs from that point. But this is just an example.
+Using Python scripts and request library. Let's say we want to create a chain of connections, 20 at a time. We can do this through a Python script. Let's assume we want to add this to ID 26, which already exists. But this naive approach only works if the IDs are actually are in numerical order. If they're heavily mixed up, it won't create a chain. Unless you go to admin panel and look at the last node on the list, meaning the last ID, you can start adding IDs from that point. But this is just an example.
 
 ```
 # pip install requests
@@ -308,8 +308,8 @@ for i in range(loops):
 
 ```
 
-<h3>Trick to quickly go to the NODE you are looking for</h3>
-In UI service running on a web browser, you'll see a little "search engine" on the left menu. Enter key in "Quick selection by ID" is not currently implemented. Now is the only way to click the "Go" button after entering the ID in the search box. However, if you know the node you're looking for, or you want to play and don't want to constantly zoom in and out, and scroll closer to the node, you can simply enter, for example, #127 in the box and press "GO" several times. Pressing it several times zooms in. Then, in the upper right corner, there's "FIT" to zoom out.
+<h3>Trick to quickly go to NODE you are looking for</h3>
+In UI service running on a web browser, you'll see a little "search engine" on the left menu. Enter key in "Quick selection by ID" is not currently implemented. Now is the only way to click "Go" button after entering the ID in search box. However, if you know the node you're looking for, or you want to play and don't want to constantly zoom in and out, and scroll closer to node, you can simply enter, for example, #127 in box and press "GO" several times. Pressing it several times zooms in. Then, in the upper right corner, there's "FIT" to zoom out.
 
 
 <br /><br />
