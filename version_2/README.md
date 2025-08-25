@@ -14,7 +14,7 @@ python app.py
 
 2. Click the Analyze Path button, and a window will appear. Enter target node ID as shown in the image. The window obscures the #ID a bit, but it has #140 in it. The list doesn't show just the path for this specific path, it lists all of them.
 
-![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_2/images_ver2/2.png?raw=true)
+![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_2/images_ver2/2a.png?raw=true)
 
 3. Confirmation of path change.
 
