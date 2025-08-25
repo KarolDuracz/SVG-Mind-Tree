@@ -28,7 +28,7 @@ python app.py
 
 1. Click PEN and the log window will open. Simply hover over the node, left-click, drag, and release.
 
-![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_2/images_ver2/5.png?raw=true)
+![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_2/images_ver2/5a.png?raw=true)
 
 2.  Once you release the left mouse button, a window will appear to enter your information. You can simply press SAVE, basic information has already been added automatically.
 
