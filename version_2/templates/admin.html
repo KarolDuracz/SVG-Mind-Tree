@@ -1,0 +1,252 @@
+<!-- templates/admin.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Admin — SVG Mind Tree</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { --bg:#f3f4f6; --panel:#fff; --muted:#666; --danger:#ff1744; --btn:#1976d2; }
+    body { font-family: Arial, sans-serif; margin:18px; background:var(--bg); color:#111; }
+    .topbar { display:flex; gap:12px; align-items:center; margin-bottom:14px; }
+    h1 { margin:0; font-size:20px; }
+    button { padding:8px 12px; border-radius:6px; border:none; cursor:pointer; font-size:14px; }
+    .back { background:#333; color:#fff; }
+    .del-small { background:#b71c1c; color:#fff; padding:6px 8px; border-radius:5px; }
+    .clear-all { background:var(--danger); color:#fff; padding:10px 14px; border-radius:8px; font-weight:700; }
+    table { width:100%; border-collapse:collapse; margin-bottom:20px; background:var(--panel); box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+    th, td { padding:8px 10px; border:1px solid #e6e6e6; text-align:left; font-size:13px; vertical-align:top; }
+    th { background:#fafafa; font-weight:700; }
+    .muted { color:var(--muted); font-size:13px; }
+    .small { font-size:13px; color:#444; margin-top:6px; }
+    textarea { width:100%; min-height:80px; box-sizing:border-box; padding:6px; }
+    .flex { display:flex; gap:10px; align-items:center; }
+    .log-panel { margin-top:18px; background:var(--panel); padding:10px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+    .log-entry { border-bottom:1px solid #eee; padding:8px 6px; font-size:13px; }
+    .log-entry:last-child { border-bottom:none; }
+    .controls { margin-left:auto; display:flex; gap:8px; }
+    .btn-primary { background:var(--btn); color:#fff; padding:8px 10px; border-radius:6px; }
+    .btn-ghost { background:#eee; color:#111; padding:8px 10px; border-radius:6px; }
+    .export-btn { background:#2e7d32; color:#fff; }
+    .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); z-index:1000; }
+    .modal .box { width:760px; max-width:96%; background:#fff; padding:16px; border-radius:8px; box-shadow:0 8px 30px rgba(0,0,0,0.25); }
+    .modal .row { display:flex; gap:8px; }
+    label { display:block; font-size:13px; margin-top:8px; }
+    input[type="text"], input[type="number"] { padding:8px; width:100%; box-sizing:border-box; }
+    .right { text-align:right; }
+    .notice { font-size:13px; color:#666; margin-bottom:10px; }
+    .meta { color:#666; font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="back" onclick="window.location='/'">← Back to Scene</button>
+    <h1>Admin Panel</h1>
+    <div class="controls">
+      <button id="btnReload" class="btn-ghost">Reload</button>
+      <button id="btnExportLogs" class="export-btn">Export Logs</button>
+      <button id="btnClearAll" class="clear-all">DELETE ALL</button>
+    </div>
+  </div>
+
+  <div class="notice">Edit nodes and connections. You can update node text/description/position.</div>
+
+  <h2>Nodes</h2>
+  <div id="nodesArea">Loading...</div>
+
+  <h2>Connections</h2>
+  <div id="connsArea">Loading...</div>
+
+  <div class="log-panel">
+    <div style="display:flex; align-items:center;">
+      <h3 style="margin:0;">Update Logs</h3>
+      <div style="flex:1;"></div>
+      <div class="muted">(client-side)</div>
+    </div>
+    <div id="logsList" style="margin-top:8px;">
+      <div class="muted">No client logs</div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="modal-edit" class="modal">
+    <div class="box">
+      <h3>Edit Node <span id="editNodeId" class="muted"></span></h3>
+      <div class="row">
+        <div style="flex:1">
+          <label>Name</label>
+          <input id="editName" type="text" />
+        </div>
+        <div style="width:160px;">
+          <label>Seq angle</label>
+          <input id="editSeqAngle" type="number" step="0.01" />
+        </div>
+        <div style="width:160px;">
+          <label>Branch side</label>
+          <select id="editBranchSide"><option value="">(none)</option><option>left</option><option>right</option><option>above</option><option>below</option></select>
+        </div>
+      </div>
+
+      <label>Position (x,y) — comma delimited</label>
+      <input id="editPos" type="text" placeholder="e.g. 12.0, 45.0" />
+
+      <label>Description (short)</label>
+      <textarea id="editDesc"></textarea>
+
+      <label>Text (long)</label>
+      <textarea id="editText"></textarea>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+        <div class="meta">ID: <span id="editNodeIdMeta"></span> &nbsp; Created: <span id="editCreatedAt"></span></div>
+        <div>
+          <button id="cancelEdit" class="btn-ghost">Cancel</button>
+          <button id="saveEdit" class="btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Admin JS
+  const nodesArea = document.getElementById('nodesArea');
+  const connsArea = document.getElementById('connsArea');
+  const logsList = document.getElementById('logsList');
+  const localLogKey = 'svgmind_admin_logs_v1';
+  function loadLocalLogs(){ try{ const raw = localStorage.getItem(localLogKey); return raw? JSON.parse(raw): []; }catch(e){return[];} }
+  function saveLocalLogs(l){ localStorage.setItem(localLogKey, JSON.stringify(l)); }
+  function pushLocalLog(e){ const l=loadLocalLogs(); l.unshift(e); saveLocalLogs(l); renderLogs(); }
+
+  async function load() {
+    nodesArea.innerHTML = 'Loading...'; connsArea.innerHTML = 'Loading...';
+    try {
+      const [nodesR, connsR] = await Promise.all([fetch('/api/nodes'), fetch('/api/connections')]);
+      const nodes = nodesR.ok? await nodesR.json() : [];
+      const conns = connsR.ok? await connsR.json() : [];
+      renderNodes(nodes); renderConns(conns); renderLogs();
+    } catch (err) {
+      nodesArea.innerHTML = '<div class="muted">Failed to load: '+err+'</div>';
+    }
+  }
+
+  function renderNodes(nodes) {
+    if (!nodes || !nodes.length) { nodesArea.innerHTML = '<div class="muted">No nodes</div>'; return; }
+    let html = '<table><thead><tr><th>ID</th><th>Name</th><th>Pos</th><th>Description</th><th>Text</th><th>Seq</th><th>Branch</th><th>Updated</th><th></th></tr></thead><tbody>';
+    nodes.forEach(n => {
+      const desc = n.description? n.description.replace(/</g,'&lt;') : '';
+      const txt = n.text? (n.text.length>200? n.text.slice(0,200)+'…' : n.text) : '';
+      html += `<tr>
+        <td>${n.id}</td>
+        <td>${escapeHtml(n.name||'')}</td>
+        <td>${(n.x||0).toFixed(1)}, ${(n.y||0).toFixed(1)}</td>
+        <td style="max-width:260px; white-space:pre-wrap;">${escapeHtml(desc)}</td>
+        <td style="max-width:300px; white-space:pre-wrap;">${escapeHtml(txt)}</td>
+        <td>${n.seq_angle!==null && n.seq_angle!==undefined? Number(n.seq_angle).toFixed(2):''}</td>
+        <td>${n.branch_side || ''}</td>
+        <td>${escapeHtml(n.updated_at||'')}</td>
+        <td><div style="display:flex; gap:8px;"><button class="btn-ghost" onclick="onEdit(${n.id})">Edit</button><button class="del-small" onclick="delNode(${n.id})">Delete</button></div></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    nodesArea.innerHTML = html;
+  }
+
+  function renderConns(conns) {
+    if (!conns || !conns.length) { connsArea.innerHTML = '<div class="muted">No connections</div>'; return; }
+    let html = '<table><thead><tr><th>ID</th><th>Source</th><th>Target</th><th>Metadata</th><th>Created</th><th></th></tr></thead><tbody>';
+    conns.forEach(c => {
+      html += `<tr><td>${c.id}</td><td>${c.source}</td><td>${c.target}</td><td>${escapeHtml(c.metadata||'')}</td><td>${escapeHtml(c.created_at||'')}</td><td><button class="del-small" onclick="delConn(${c.id})">Delete</button></td></tr>`;
+    });
+    html += '</tbody></table>';
+    connsArea.innerHTML = html;
+  }
+
+  async function delNode(id) {
+    if (!confirm('Delete node #' + id + '?')) return;
+    const r = await fetch('/api/nodes/' + id, { method: 'DELETE' });
+    if (r.ok) { await load(); } else alert('Error: ' + await r.text());
+  }
+  async function delConn(id) {
+    if (!confirm('Delete connection #' + id + '?')) return;
+    const r = await fetch('/api/connections/' + id, { method: 'DELETE' });
+    if (r.ok) { await load(); } else alert('Error: ' + await r.text());
+  }
+
+  // edit flow
+  const modalEdit = document.getElementById('modal-edit');
+  const editName = document.getElementById('editName');
+  const editSeqAngle = document.getElementById('editSeqAngle');
+  const editBranchSide = document.getElementById('editBranchSide');
+  const editPos = document.getElementById('editPos');
+  const editDesc = document.getElementById('editDesc');
+  const editText = document.getElementById('editText');
+  let currentEditingId = null;
+
+  window.onEdit = async function(id) {
+    currentEditingId = id;
+    const r = await fetch('/api/nodes/' + id);
+    if (!r.ok) return alert('Failed to fetch node');
+    const n = await r.json();
+    document.getElementById('editNodeId').textContent = '#'+n.id;
+    document.getElementById('editNodeIdMeta').textContent = n.id;
+    editName.value = n.name || '';
+    editSeqAngle.value = n.seq_angle!==null && n.seq_angle!==undefined ? n.seq_angle : '';
+    editBranchSide.value = n.branch_side || '';
+    editPos.value = `${n.x || 0}, ${n.y || 0}`;
+    editDesc.value = n.description || '';
+    editText.value = n.text || '';
+    document.getElementById('editCreatedAt').textContent = n.created_at || '';
+    modalEdit.style.display = 'flex';
+  };
+
+  document.getElementById('cancelEdit').addEventListener('click', ()=>{ modalEdit.style.display='none'; currentEditingId=null; });
+  document.getElementById('saveEdit').addEventListener('click', async () => {
+    if (!currentEditingId) return;
+    const payload = { name: editName.value || 'Node', description: editDesc.value || null, text: editText.value || null };
+    if (editSeqAngle.value !== '') payload.seq_angle = parseFloat(editSeqAngle.value);
+    if (editBranchSide.value !== '') payload.branch_side = editBranchSide.value;
+    const coordsRaw = editPos.value.trim();
+    if (coordsRaw) {
+      const parts = coordsRaw.split(',').map(p=>parseFloat(p.trim()));
+      if (parts.length===2 && parts.every(p=>!Number.isNaN(p))) {
+        payload.x = parts[0]; payload.y = parts[1];
+      }
+    }
+    const r = await fetch('/api/nodes/' + currentEditingId, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    if (!r.ok) { alert('Failed: ' + await r.text()); return; }
+    const updated = await r.json();
+    pushLocalLog({ id: 'log_' + Date.now(), node_id: currentEditingId, action: 'update', timestamp: new Date().toISOString(), actor: 'admin', message: 'Updated fields: ' + Object.keys(payload).join(', ') });
+    modalEdit.style.display = 'none';
+    currentEditingId = null;
+    await load();
+  });
+
+  // clear all
+  document.getElementById('btnClearAll').addEventListener('click', async () => {
+    if (!confirm('DELETE all nodes and connections?')) return;
+    const typed = prompt('Type DELETE to confirm.');
+    if (typed !== 'DELETE') return alert('Aborted.');
+    const r = await fetch('/api/admin/clear', { method: 'POST' });
+    if (r.ok) { saveLocalLogs([]); await load(); alert('Cleared DB.'); } else alert('Failed: ' + await r.text());
+  });
+
+  document.getElementById('btnReload').addEventListener('click', () => load());
+  document.getElementById('btnExportLogs').addEventListener('click', () => {
+    const d = loadLocalLogs();
+    const blob = new Blob([JSON.stringify(d, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='admin-logs.json'; a.click(); URL.revokeObjectURL(url);
+  });
+
+  function renderLogs(){
+    const l = loadLocalLogs();
+    if (!l.length) { logsList.innerHTML = '<div class="muted">No logs</div>'; return; }
+    logsList.innerHTML = l.map(it => `<div class="log-entry"><div style="font-weight:700">#${it.node_id} — ${escapeHtml(it.action||'')}</div><div class="meta">${new Date(it.timestamp).toLocaleString()} · ${escapeHtml(it.actor||'')}</div><div style="margin-top:6px; white-space:pre-wrap;">${escapeHtml(it.message||'')}</div></div>`).join('');
+  }
+
+  function escapeHtml(s){ if(!s) return ''; return (''+s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  // initial
+  load();
+</script>
+</body>
+</html>
