@@ -1,3 +1,6 @@
+> [!TIP]
+> Update: Go to the version_2 folder here. There's a more user-friendly version there. You can simply turn on drawing mode and draw on the canvas instead of clicking or sending terminal queries. The same goes for changing the target point for the entire path.
+
 <h2>The full description is here</h2>
 
 https://github.com/KarolDuracz/scratchpad/tree/main/Webapp/SVG%20graph%20with%20sequence%20playback
