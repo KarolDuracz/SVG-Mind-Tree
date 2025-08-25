@@ -34,6 +34,6 @@ python app.py
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_2/images_ver2/6.png?raw=true)
 
-3. A new node in chain is added
+3. A new node in chain is added. Click on PEN (on) to exit drawing mode.
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_2/images_ver2/7.png?raw=true)
