@@ -39,3 +39,8 @@ clearSceneBtn.addEventListener('click', async () => {
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_3/images_ver3/3.png?raw=true)
 
+<h2>Summary</h2>
+
+I'll write a summary of this repo here. I probably won't add more, because it's a base. And by default, I need it for something else, these graphs. But now I've started thinking about the data, whether such maps make sense, etc. Because I've started measuring various things, like distance on a 2D plane and between layers of individual neurons in networks. And not just Euclidean ones. (...) I won't post anything more for now. I'll just leave the last image that started all the fun with these memory maps. I simply classified a small network into three layers ( yellow, red, blue dots ) and started measuring the distance between neurons in 2D ( on this canvas on the right ) and between layers in the network. So...
+
+![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_3/images_ver3/last%20words%20for%20this%20demos.png?raw=true)
