@@ -35,7 +35,7 @@ clearSceneBtn.addEventListener('click', async () => {
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_3/images_ver3/2.png?raw=true)
 
-3. Add some nodes in sequence and click "analyze path" to change direction to new target node and play. If you want to return to the previous path, there's no need to search for the last token in the node. In this case, simply click "analyze path" and enter the next token after the token where the direction change was made, meaning somewhere in the node further down the path the path should be played. In this case, simply enter #676.
+3. Add some nodes in sequence and click "analyze path" to change direction to new target node and play. If you want to return to the previous path, there's no need to search for the last token in node. In this case, simply click "analyze path" and enter next token after token where direction change was made, meaning somewhere in node further down the path, the path should be played. In this case, simply enter #676.
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_3/images_ver3/3.png?raw=true)
 
