@@ -8,8 +8,8 @@ Exercises 4-5 write directly to the .db database on disk. This is much faster. T
 No need to read descriptions. Just download the repo and follow these 5 instructions one by one.
 
 ```
-python post5.py --file input.txt --maxlen 6 --delay 0.02  // It takes ~2-3 minutes for current input.txt file
-python scale_nodes_space.py --url http://localhost:5000 --scale 10 // ~1 minute for current input.txt file
+python post5.py --file input.txt --maxlen 6 --delay 0.02  // It takes ~2-3 minutes for current input.txt file. Need to confirm "y" in the console.
+python scale_nodes_space.py --url http://localhost:5000 --scale 10 // ~1 minute for current input.txt file. Need to confirm "y" in the console.
 python extract_and_build.py --input input.txt --pattern "if " --plain --out matches.txt 
 python build_plan_from_text.py --input matches.txt --out plan.json --stats
 python write_plan_to_db.py --db graph.db --plan plan.json
