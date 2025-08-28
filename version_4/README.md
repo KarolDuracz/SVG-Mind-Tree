@@ -85,7 +85,7 @@ python scale_nodes_space.py --url http://localhost:5000 --scale 10 --out-before 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_4/images_ver4/exercise2.png?raw=true)
 
 
-<h3>3. Exercise #3 - processing the file to extract the patterns we are interested in </h3>h3>
+<h3>3. Exercise #3 - processing the file to extract the patterns we are interested in </h3>
 
 ```
 @file extract_and_build.py
