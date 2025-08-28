@@ -4,7 +4,16 @@
 <h2>A quick description of what's here</h2>
 
 Exercises 1-3 are scripts that send queries to the server via request. <br /><br />
-Exercises 4-5 write directly to the .db database on disk. This is much faster. There's no delay in sending subsequent queries. It simply converts directly to the JSON format used by graph.db and writes to the database on disk.
+Exercises 4-5 write directly to the .db database on disk. This is much faster. There's no delay in sending subsequent queries. It simply converts directly to the JSON format used by graph.db and writes to the database on disk.<br /><br />
+No need to read descriptions. Just download the repo and follow these 5 instructions one by one.
+
+```
+python post5.py --file input.txt --maxlen 6 --delay 0.02
+python scale_nodes_space.py --url http://localhost:5000 --scale 10
+python extract_and_build.py --input input.txt --pattern "if " --plain --out matches.txt 
+python build_plan_from_text.py --input matches.txt --out plan.json --stats
+python write_plan_to_db.py --db graph.db --plan plan.json
+```
 
 <hr>
 
