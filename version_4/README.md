@@ -241,7 +241,6 @@ Using graph.db from repo
 python write_plan_to_db.py --db graph.db --plan plan.json
 ```
 
-If your plan is in a different format, adapt it to the JSON layout above or ask me to modify the loader.
 <br /><br />
 Copy the graph.db file from the "version_3" folder to "version_4" folder. Run the script. You should see a log like this in console. Otherwise, you might see an ERROR because it won't find the graph.db file. You can then copy the .db file to "version_3" folder, where server can see it.
 
