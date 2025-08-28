@@ -322,4 +322,4 @@ In UI service running on a web browser, you'll see a little "search engine" on t
 There's no playback API. Like many other things, but you get the idea.
 
 <h3>Update logs</h3>
-28-08-2025 - Why am I adding the GPT 4o tokenizer to the exercises? The script itself isn't suitable for processing sequences like transfomer does, but it might be useful for writing scenarios using text fields. Perhaps, however, a 2D classifier for "Euclidean space" tokens could be created. Apart from that, it is generally a script for writing more decision-making scenarios.
+28-08-2025 - Why am I adding the GPT 4o tokenizer to the exercises? The script itself isn't suitable for processing sequences like transfomer does, but it might be useful for writing scenarios using text fields. Perhaps, however, a 2D classifier for "Euclidean space" tokens could be created. For now, it's more for testing purposes to see if this approach makes sense. Apart from that, it is generally a script for writing more decision-making scenarios.
