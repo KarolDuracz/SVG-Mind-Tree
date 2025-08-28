@@ -1,6 +1,9 @@
 > [!TIP]
 > Update: Go to the version_2 folder here. There's a more user-friendly version there. You can simply turn on drawing mode and draw on the canvas instead of clicking or sending terminal queries. The same goes for changing the target point for the entire path.
 
+> [!NOTE]  
+> Please read the "Updates" section at the bottom of this page. I've explained why I use the tokenizer with GPT, etc.
+
 <h2>The full description is here</h2>
 
 https://github.com/KarolDuracz/scratchpad/tree/main/Webapp/SVG%20graph%20with%20sequence%20playback
@@ -317,3 +320,6 @@ In UI service running on a web browser, you'll see a little "search engine" on t
 
 <br /><br />
 There's no playback API. Like many other things, but you get the idea.
+
+<h3>Update logs</h3>
+28-08-2025 - Why am I adding the GPT 4o tokenizer to the exercises? The script itself isn't suitable for processing sequences like transfomer does, but it might be useful for writing scenarios using text fields. Perhaps, however, a 2D classifier for "Euclidean space" tokens could be created. Apart from that, it is generally a script for writing more decision-making scenarios.
