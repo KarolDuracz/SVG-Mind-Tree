@@ -1,0 +1,17 @@
+analyzeBtn.addEventListener('click', () => {
+  // require a selected node (user clicks node first)
+  if (!selectedNodeId) {
+    alert('Please select a node (click on it) before running Analyze Path.');
+    return;
+  }
+  analyzeAndSetSequenceEnd();
+});
+
+analyzeBtn.addEventListener('click', () => {
+  // require a selected node (user clicks node first)
+  if (!selectedNodeId) {
+    alert('Please select a node (click on it) before running Analyze Path.');
+    return;
+  }
+  analyzeAndSetSequenceEnd();
+});
