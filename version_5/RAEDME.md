@@ -4,3 +4,4 @@ Helps calculate the distance between nodes. Works without starting an HTTP serve
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_5/v5_image.png?raw=true)
 
+![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_5/v5_image2.png?raw=true)
