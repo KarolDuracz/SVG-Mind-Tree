@@ -1,0 +1,561 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>2-Node + Rect Drag & Connect Demo</title>
+  <style>
+    html,body{height:100%; margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;}
+    #wrap{display:flex; height:100%;}
+    #canvasWrap{flex:1; display:flex; align-items:stretch; background:#f6f7fb;}
+    canvas{flex:1; width:100%; height:100%; display:block; cursor:crosshair;}
+    #info{width:360px; padding:12px; box-sizing:border-box; background:#fff; border-left:1px solid #ddd; overflow:auto;}
+    h3{margin:6px 0 10px 0; font-size:16px;}
+    .row{margin:6px 0; font-size:13px;}
+    .label{color:#444; font-weight:600; display:inline-block; width:150px;}
+    .small{color:#666; font-size:12px;}
+    .hint{margin-top:10px; font-size:12px; color:#666;}
+    button, select { margin:6px 0; padding:6px 8px; font-size:13px; }
+    .rect-list { margin:6px 0; padding:6px; border:1px dashed #ddd; background:#fafafa; max-height:120px; overflow:auto; }
+    .rect-item { padding:4px 6px; cursor:pointer; border-bottom:1px solid #eee; }
+    .rect-item:last-child { border-bottom:none; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="canvasWrap">
+      <canvas id="c"></canvas>
+    </div>
+    <div id="info">
+      <h3>2-Node & Rect Drag/Connect Demo</h3>
+
+      <div class="row"><span class="label">Selection target:</span>
+        <select id="selectionTarget">
+          <option value="none">None</option>
+          <option value="nodeA">Node A</option>
+          <option value="nodeB">Node B</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <button id="createRectBtn">Create Rect (Shift-drag or button)</button>
+        <button id="clearRectsBtn">Clear Rects</button>
+      </div>
+
+      <div class="row">
+        <div class="small">Tips:</div>
+        <div class="small">• Click a node or choose it from the dropdown to select. • Click + drag on empty space to pan (Alt + drag). • Hold Shift or click "Create Rect" then drag to draw a rectangle.</div>
+      </div>
+
+      <hr>
+      <div><strong>Node A</strong></div>
+      <div class="row"><span class="label">A (x,y):</span><span id="aPos">-</span></div>
+
+      <div><strong>Node B</strong></div>
+      <div class="row"><span class="label">B (x,y):</span><span id="bPos">-</span></div>
+
+      <hr>
+      <div><strong>Vector A → B</strong></div>
+      <div class="row"><span class="label">Vector (dx,dy):</span><span id="vec">-</span></div>
+      <div class="row"><span class="label">Distance:</span><span id="dist">-</span></div>
+      <div class="row"><span class="label">Angle (rad):</span><span id="angle">-</span></div>
+      <div class="row"><span class="label">Angle (deg):</span><span id="angleDeg">-</span></div>
+
+      <hr>
+      <div><strong>Rectangles</strong></div>
+      <div class="row"><span class="label">Rects count:</span><span id="rectCount">0</span></div>
+      <div class="rect-list" id="rectList"></div>
+
+      <div id="rectInfo" style="display:none;">
+        <hr>
+        <div><strong>Selected Rect Info</strong></div>
+        <div class="row"><span class="label">x,y:</span><span id="rectXY">-</span></div>
+        <div class="row"><span class="label">w × h:</span><span id="rectWH">-</span></div>
+        <div class="row"><span class="label">minX,maxX:</span><span id="rectXRange">-</span></div>
+        <div class="row"><span class="label">minY,maxY:</span><span id="rectYRange">-</span></div>
+        <div class="row"><span class="label">nodes inside:</span><span id="rectNodes">-</span></div>
+      </div>
+
+      <div class="hint">When a rect is dragged, nodes inside at drag-start are temporarily connected (lines) and move together. On mouseup the connections are removed.</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // DOM refs
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const selectionTarget = document.getElementById('selectionTarget');
+  const createRectBtn = document.getElementById('createRectBtn');
+  const clearRectsBtn = document.getElementById('clearRectsBtn');
+  const rectListEl = document.getElementById('rectList');
+  const rectCountEl = document.getElementById('rectCount');
+  const rectInfoEl = document.getElementById('rectInfo');
+  const rectXYEl = document.getElementById('rectXY');
+  const rectWHEl = document.getElementById('rectWH');
+  const rectXRangeEl = document.getElementById('rectXRange');
+  const rectYRangeEl = document.getElementById('rectYRange');
+  const rectNodesEl = document.getElementById('rectNodes');
+
+  const aPosEl = document.getElementById('aPos');
+  const bPosEl = document.getElementById('bPos');
+  const vecEl = document.getElementById('vec');
+  const distEl = document.getElementById('dist');
+  const angleEl = document.getElementById('angle');
+  const angleDegEl = document.getElementById('angleDeg');
+
+  // DPR/resizing
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.clientWidth * dpr;
+    canvas.height = canvas.clientHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Node model
+  const nodeRadius = 10;
+  let nodeA = {x: 120, y: 140, color: '#e76f51', label: 'A'};
+  let nodeB = {x: 360, y: 220, color: '#2a9d8f', label: 'B'};
+
+  // Rects model
+  let rects = []; // {id, x, y, w, h}
+  let nextRectId = 0;
+
+  // State
+  let selected = {type: 'none', id: null}; // none | nodeA | nodeB | rect
+  let actionState = { mode: 'idle' }; // idle | creating_rect | dragging_node | dragging_rect | panning
+  let dragInfo = null;
+  let tempRectStart = null;
+  let tempRectPreview = null;
+  let createRectMode = false;
+
+  // Utilities
+  const dist = (ax,ay,bx,by) => Math.hypot(bx-ax, by-ay);
+  const angleRad = (ax,ay,bx,by) => Math.atan2(by-ay, bx-ax);
+  const deg = r => r * 180 / Math.PI;
+  const round = (n,d=4) => Number(n.toFixed(d));
+  const pointInRect = (px,py,r) => px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h;
+
+  // UI helpers
+  function reorderRectsUI(){
+    rectListEl.innerHTML = '';
+    rects.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'rect-item';
+      div.textContent = `Rect ${r.id}: x=${Math.round(r.x)} y=${Math.round(r.y)} w=${Math.round(r.w)} h=${Math.round(r.h)}`;
+      div.dataset.rid = r.id;
+      if (selected.type === 'rect' && selected.id === r.id) {
+        div.style.background = '#e6f2ff';
+      }
+      div.addEventListener('click', () => {
+        selected = {type:'rect', id:r.id};
+        selectionTarget.value = 'rect_' + r.id;
+        updateRectInfo();
+        draw();
+      });
+      rectListEl.appendChild(div);
+    });
+    rectCountEl.textContent = String(rects.length);
+    refreshSelectionOptions();
+  }
+  function refreshSelectionOptions(){
+    const base = [
+      {value:'none', text:'None'},
+      {value:'nodeA', text:'Node A'},
+      {value:'nodeB', text:'Node B'},
+    ];
+    const opts = base.concat(rects.map(r => ({value:'rect_' + r.id, text:`Rect ${r.id}`})));
+    selectionTarget.innerHTML = '';
+    opts.forEach(o => {
+      const el = document.createElement('option');
+      el.value = o.value; el.textContent = o.text;
+      selectionTarget.appendChild(el);
+    });
+    // set selection
+    if (selected.type === 'rect') selectionTarget.value = 'rect_' + selected.id;
+    else selectionTarget.value = selected.type || 'none';
+  }
+
+  function updateRectInfo(){
+    if (selected.type !== 'rect') {
+      rectInfoEl.style.display = 'none';
+      return;
+    }
+    const r = rects.find(rr => rr.id === selected.id);
+    if (!r) { rectInfoEl.style.display = 'none'; return; }
+    rectInfoEl.style.display = 'block';
+    rectXYEl.textContent = `${Math.round(r.x)}, ${Math.round(r.y)}`;
+    rectWHEl.textContent = `${Math.round(r.w)} × ${Math.round(r.h)}`;
+    rectXRangeEl.textContent = `${Math.round(r.x)} , ${Math.round(r.x + r.w)}`;
+    rectYRangeEl.textContent = `${Math.round(r.y)} , ${Math.round(r.y + r.h)}`;
+    const inside = [nodeA, nodeB].filter(n => pointInRect(n.x, n.y, r)).map(n => n.label).join(', ') || '(none)';
+    rectNodesEl.textContent = inside;
+  }
+
+  // selection dropdown
+  selectionTarget.addEventListener('change', () => {
+    const v = selectionTarget.value;
+    if (v === 'none') selected = {type:'none', id:null};
+    else if (v === 'nodeA') selected = {type:'nodeA', id:null};
+    else if (v === 'nodeB') selected = {type:'nodeB', id:null};
+    else if (v.startsWith('rect_')) selected = {type:'rect', id: Number(v.split('_')[1])};
+    updateRectInfo(); draw();
+  });
+
+  // create / clear rect buttons
+  createRectBtn.addEventListener('click', () => {
+    createRectMode = true;
+    actionState.mode = 'creating_rect';
+    createRectBtn.textContent = 'Creating... (Shift-drag)';
+    createRectBtn.disabled = true;
+  });
+  clearRectsBtn.addEventListener('click', () => {
+    rects = []; nextRectId = 0;
+    selected = {type:'none', id:null};
+    refreshSelectionOptions(); reorderRectsUI(); updateRectInfo(); draw();
+  });
+
+  // Hit testing
+  function hitNode(mx,my, node){
+    return dist(mx,my,node.x,node.y) <= nodeRadius + 6;
+  }
+  function findRectAt(mx,my){
+    // return topmost rect containing point (last in array is top)
+    for (let i = rects.length - 1; i >= 0; i--) {
+      const r = rects[i];
+      if (pointInRect(mx,my,r)) return r;
+    }
+    return null;
+  }
+
+  // Mouse interaction
+  let isMouseDown = false;
+  canvas.addEventListener('mousedown', (ev) => {
+    const rectBounds = canvas.getBoundingClientRect();
+    const mx = ev.clientX - rectBounds.left, my = ev.clientY - rectBounds.top;
+    isMouseDown = true;
+
+    // If createRectMode or Shift -> start creating a rectangle
+    if (createRectMode || ev.shiftKey) {
+      tempRectStart = {x: mx, y: my};
+      actionState.mode = 'creating_rect';
+      return;
+    }
+
+    // If selected target is nodeA or nodeB, try to drag that node when clicking near it
+    const sel = selectionTarget.value;
+    if (sel === 'nodeA' && hitNode(mx,my,nodeA)) {
+      actionState.mode = 'dragging_node';
+      dragInfo = {which: 'A', offsetX: nodeA.x - mx, offsetY: nodeA.y - my};
+      selected = {type:'nodeA', id:null};
+      return;
+    }
+    if (sel === 'nodeB' && hitNode(mx,my,nodeB)) {
+      actionState.mode = 'dragging_node';
+      dragInfo = {which: 'B', offsetX: nodeB.x - mx, offsetY: nodeB.y - my};
+      selected = {type:'nodeB', id:null};
+      return;
+    }
+
+    // If selected is rect or dropdown indicates a rect, and click is within that rect -> start dragging rect
+    if (sel.startsWith('rect_') || selected.type === 'rect') {
+      const rectId = selected.type === 'rect' ? selected.id : (sel.startsWith('rect_') ? Number(sel.split('_')[1]) : null);
+      const r = rects.find(rr => rr.id === rectId);
+      if (r && pointInRect(mx,my,r)) {
+        // start dragging the rect and capture nodes inside at drag start
+        actionState.mode = 'dragging_rect';
+        dragInfo = {
+          rectId: r.id,
+          startMouse: {x: mx, y: my},
+          startRect: {x: r.x, y: r.y, w: r.w, h: r.h},
+          nodesAtStart: [] // will fill below with node refs & start positions
+        };
+        // collect nodes inside at drag start
+        [nodeA, nodeB].forEach(n => {
+          if (pointInRect(n.x, n.y, r)) {
+            dragInfo.nodesAtStart.push({node: n, startX: n.x, startY: n.y});
+          }
+        });
+        return;
+      }
+    }
+
+    // If clicked on a node (and not in special target), select it
+    if (hitNode(mx,my,nodeA)) {
+      selected = {type:'nodeA', id:null};
+      selectionTarget.value = 'nodeA';
+      updateRectInfo(); draw();
+      return;
+    }
+    if (hitNode(mx,my,nodeB)) {
+      selected = {type:'nodeB', id:null};
+      selectionTarget.value = 'nodeB';
+      updateRectInfo(); draw();
+      return;
+    }
+
+    // Alt-drag panning: move everything
+    if (ev.altKey) {
+      actionState.mode = 'panning';
+      dragInfo = {
+        startMouse: {x: mx, y: my},
+        originA: {x: nodeA.x, y: nodeA.y},
+        originB: {x: nodeB.x, y: nodeB.y},
+        originRects: rects.map(r => ({...r}))
+      };
+      return;
+    }
+
+    // Clicked empty space -> deselect
+    selected = {type:'none', id:null};
+    selectionTarget.value = 'none';
+    updateRectInfo(); draw();
+  });
+
+  // mousemove
+  window.addEventListener('mousemove', (ev) => {
+    if (!isMouseDown) return;
+    const rectBounds = canvas.getBoundingClientRect();
+    const mx = ev.clientX - rectBounds.left, my = ev.clientY - rectBounds.top;
+
+    if (actionState.mode === 'creating_rect' && tempRectStart) {
+      const s = tempRectStart;
+      const x = Math.min(s.x, mx), y = Math.min(s.y, my), w = Math.abs(mx - s.x), h = Math.abs(my - s.y);
+      tempRectPreview = {x, y, w, h};
+      draw();
+      return;
+    }
+
+    if (actionState.mode === 'dragging_node' && dragInfo) {
+      if (dragInfo.which === 'A') {
+        nodeA.x = Math.round(mx + dragInfo.offsetX);
+        nodeA.y = Math.round(my + dragInfo.offsetY);
+      } else {
+        nodeB.x = Math.round(mx + dragInfo.offsetX);
+        nodeB.y = Math.round(my + dragInfo.offsetY);
+      }
+      updateRectInfo(); draw();
+      return;
+    }
+
+    if (actionState.mode === 'dragging_rect' && dragInfo) {
+      // translate rect by mouse delta, and move nodes that were inside at drag-start by same delta
+      const r = rects.find(rr => rr.id === dragInfo.rectId);
+      if (!r) return;
+      const dx = mx - dragInfo.startMouse.x;
+      const dy = my - dragInfo.startMouse.y;
+      r.x = Math.round(dragInfo.startRect.x + dx);
+      r.y = Math.round(dragInfo.startRect.y + dy);
+
+      // move nodes that were inside at drag start
+      if (dragInfo.nodesAtStart && dragInfo.nodesAtStart.length) {
+        dragInfo.nodesAtStart.forEach(entry => {
+          entry.node.x = Math.round(entry.startX + dx);
+          entry.node.y = Math.round(entry.startY + dy);
+        });
+      }
+      // draw shows connector lines while dragging
+      updateRectInfo(); draw();
+      return;
+    }
+
+    if (actionState.mode === 'panning' && dragInfo) {
+      const dx = mx - dragInfo.startMouse.x;
+      const dy = my - dragInfo.startMouse.y;
+      nodeA.x = Math.round(dragInfo.originA.x + dx);
+      nodeA.y = Math.round(dragInfo.originA.y + dy);
+      nodeB.x = Math.round(dragInfo.originB.x + dx);
+      nodeB.y = Math.round(dragInfo.originB.y + dy);
+      rects = dragInfo.originRects.map(r => ({...r, x: Math.round(r.x + dx), y: Math.round(r.y + dy)}));
+      refreshSelectionOptions(); reorderRectsUI(); updateRectInfo(); draw();
+      return;
+    }
+  });
+
+  // mouseup
+  window.addEventListener('mouseup', (ev) => {
+    isMouseDown = false;
+    const rectBounds = canvas.getBoundingClientRect();
+    const mx = ev.clientX - rectBounds.left, my = ev.clientY - rectBounds.top;
+
+    if (actionState.mode === 'creating_rect' && tempRectStart) {
+      const s = tempRectStart;
+      const x = Math.min(s.x, mx), y = Math.min(s.y, my), w = Math.abs(mx - s.x), h = Math.abs(my - s.y);
+      if (w >= 6 && h >= 6) {
+        const newRect = {id: nextRectId++, x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h)};
+        rects.push(newRect);
+      }
+      // reset create mode
+      tempRectStart = null;
+      tempRectPreview = null;
+      createRectMode = false;
+      createRectBtn.textContent = 'Create Rect (Shift-drag or button)';
+      createRectBtn.disabled = false;
+      actionState.mode = 'idle';
+      refreshSelectionOptions(); reorderRectsUI(); updateRectInfo(); draw();
+      return;
+    }
+
+    if (actionState.mode === 'dragging_rect' && dragInfo) {
+      // Mouse released: "disconnect" nodes (we just clear the dragInfo.nodesAtStart)
+      dragInfo.nodesAtStart = [];
+      // Keep nodes where they ended (they remain independent)
+      dragInfo = null;
+      actionState.mode = 'idle';
+      updateRectInfo(); draw();
+      return;
+    }
+
+    if (actionState.mode === 'dragging_node' && dragInfo) {
+      dragInfo = null;
+      actionState.mode = 'idle';
+      draw();
+      return;
+    }
+
+    if (actionState.mode === 'panning' && dragInfo) {
+      dragInfo = null;
+      actionState.mode = 'idle';
+      draw();
+      return;
+    }
+
+    actionState.mode = 'idle';
+  });
+
+  // draw routine
+  function draw(){
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    ctx.clearRect(0,0,W,H);
+
+    // background
+    ctx.fillStyle = '#fbfdff';
+    ctx.fillRect(0,0,W,H);
+
+    // edge A -> B
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#264653';
+    ctx.beginPath();
+    ctx.moveTo(nodeA.x, nodeA.y);
+    ctx.lineTo(nodeB.x, nodeB.y);
+    ctx.stroke();
+
+    // arrowhead A->B
+    const ang = angleRad(nodeA.x,nodeA.y,nodeB.x,nodeB.y);
+    const arrowLen = 14;
+    ctx.fillStyle = '#264653';
+    ctx.beginPath();
+    ctx.moveTo(nodeB.x, nodeB.y);
+    ctx.lineTo(nodeB.x - arrowLen*Math.cos(ang - Math.PI/7), nodeB.y - arrowLen*Math.sin(ang - Math.PI/7));
+    ctx.lineTo(nodeB.x - arrowLen*Math.cos(ang + Math.PI/7), nodeB.y - arrowLen*Math.sin(ang + Math.PI/7));
+    ctx.closePath();
+    ctx.fill();
+
+    // draw rects
+    rects.forEach(r => {
+      ctx.save();
+      ctx.globalAlpha = 0.16;
+      ctx.fillStyle = '#2b6cb0';
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      ctx.globalAlpha = 1.0;
+      ctx.lineWidth = (selected.type === 'rect' && selected.id === r.id) ? 3 : 1.6;
+      ctx.strokeStyle = (selected.type === 'rect' && selected.id === r.id) ? '#1e4e8a' : '#2b6cb0';
+      ctx.strokeRect(r.x, r.y, r.w, r.h);
+      ctx.fillStyle = '#05386b';
+      ctx.font = '12px system-ui, Arial';
+      ctx.fillText(`Rect ${r.id}`, r.x + 6, r.y + 14);
+      ctx.restore();
+    });
+
+    // draw temp preview rect if creating
+    if (tempRectPreview) {
+      ctx.save();
+      ctx.setLineDash([6,4]);
+      ctx.strokeStyle = '#ff7f50';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(tempRectPreview.x, tempRectPreview.y, tempRectPreview.w, tempRectPreview.h);
+      ctx.restore();
+    }
+
+    // if currently dragging a rect, draw connectors from rect center to each node that was inside at drag start
+    if (actionState.mode === 'dragging_rect' && dragInfo && dragInfo.nodesAtStart && dragInfo.nodesAtStart.length) {
+      const r = rects.find(rr => rr.id === dragInfo.rectId);
+      if (r) {
+        const rcx = r.x + r.w/2, rcy = r.y + r.h/2;
+        dragInfo.nodesAtStart.forEach(ent => {
+          const n = ent.node;
+          // draw connector
+          ctx.save();
+          ctx.strokeStyle = '#ff5722';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(rcx, rcy);
+          ctx.lineTo(n.x, n.y);
+          ctx.stroke();
+          // small circle near node
+          ctx.fillStyle = '#ff5722';
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, 4, 0, Math.PI*2);
+          ctx.fill();
+          ctx.restore();
+        });
+      }
+    }
+
+    // draw nodes
+    [nodeA, nodeB].forEach(n => {
+      const inSelectedRect = (selected.type === 'rect') && (() => {
+        const r = rects.find(rr => rr.id === selected.id);
+        return r ? pointInRect(n.x, n.y, r) : false;
+      })();
+
+      const isSelectedNode = (selected.type === 'nodeA' && n.label === 'A') || (selected.type === 'nodeB' && n.label === 'B');
+
+      ctx.beginPath();
+      ctx.fillStyle = n.color;
+      ctx.strokeStyle = isSelectedNode ? '#000' : '#222';
+      ctx.lineWidth = isSelectedNode ? 3 : 1.5;
+      ctx.arc(n.x, n.y, nodeRadius, 0, Math.PI*2);
+      ctx.fill();
+      ctx.stroke();
+
+      if (inSelectedRect) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.lineWidth = 2;
+        ctx.arc(n.x, n.y, nodeRadius/2, 0, Math.PI*2);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = '#111';
+      ctx.font = 'bold 12px system-ui,Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(n.label, n.x, n.y);
+    });
+
+    // update numeric readouts
+    aPosEl.textContent = `(${Math.round(nodeA.x)}, ${Math.round(nodeA.y)})`;
+    bPosEl.textContent = `(${Math.round(nodeB.x)}, ${Math.round(nodeB.y)})`;
+    const dx = nodeB.x - nodeA.x, dy = nodeB.y - nodeA.y;
+    const magnitude = dist(nodeA.x,nodeA.y,nodeB.x,nodeB.y);
+    vecEl.textContent = `(${round(dx,3)}, ${round(dy,3)})`;
+    distEl.textContent = `${round(magnitude,4)} px`;
+    let ang1 = angleRad(nodeA.x,nodeA.y,nodeB.x,nodeB.y);
+    angleEl.textContent = `${round(ang1,6)}`;
+    angleDegEl.textContent = `${round(deg(ang1),3)}°`;
+
+    // refresh UI lists
+    refreshSelectionOptions();
+    reorderRectsUI();
+    updateRectInfo();
+  }
+
+  // initial render
+  draw();
+
+})();
+</script>
+</body>
+</html>
