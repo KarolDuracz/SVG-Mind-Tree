@@ -1,0 +1,1 @@
+Helps calculate the distance between nodes. Works without starting an HTTP server. After drawing a rect and moving a node to the center, you can select "rect 1" in the right menu, for example, and move it around the plan to see its positions. And vectors.
