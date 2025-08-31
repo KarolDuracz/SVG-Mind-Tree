@@ -9,7 +9,9 @@ python server.py # works on localhost:5000
 > [!WARNING]  
 > There's a lot to do here. It's just a sketch.
 
-<b>GOAL : The goal is to answer the question of whether, by creating pieces of code ( in this particular case here ), they can be written as blocks in space (in this case, as in the rect image on the canvas, somewhere in XY). Can then attempt to connect blocks together so that in this specific DEMO EXERCISE 1 and 2, the model can solve some problems, simple ones to start with? In this approach / exercise.</b>
+<b>GOAL : The goal is to answer the question of whether, by creating pieces of code ( in this particular case here ), they can be written as blocks in space (in this case, as in the rect image on the canvas, somewhere in XY). Can then attempt to connect blocks together so that in this specific DEMO EXERCISE 1 and 2, the model can solve some problems, simple ones to start with? In this approach / exercise.<br /><br />
+GPT-5 simply rocks. It simply blows away many problems in a few seconds. But is there anything else that can be changed or improved by going in this direction or not?! Just out of curiosity. Nothing else.
+</b>
 
 <hr>
 
