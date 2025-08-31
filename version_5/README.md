@@ -26,6 +26,9 @@ This creates a sequence like the one shown in the image:
 1: #5 → 2: #6 → 3: #6 → 4: #6
 6. You can play the sequence.
 
+> [!NOTE]  
+> And then it repeats these steps for each piece of new code from the prompt. That is, you add the code, create a group, add it to the sequence, and you can connect blocks this way. BUT FOR NOW, THERE'S NO CHANGING THE CONTEXT, i.e., no intervening in the sequence. So it can't change the sequence, it just executes the code blocks one by one.
+
 Demo 1 : https://github.com/KarolDuracz/SVG-Mind-Tree/tree/main/version_5/playground/demo1
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_5/playground/guide%20how%20it%20use.png?raw=true)
