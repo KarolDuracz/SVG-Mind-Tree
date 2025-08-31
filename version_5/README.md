@@ -26,6 +26,11 @@ Demo 1 : https://github.com/KarolDuracz/SVG-Mind-Tree/tree/main/version_5/playgr
 
 Not working properly. Only these 3 steps work correctly. But here is the graph tab.
 
+1. Switch to "realtime" mode
+2. Save prompt
+3. Click play to generate text
+4. You can see the graph
+
 Demo 2 : https://github.com/KarolDuracz/SVG-Mind-Tree/tree/main/version_5/playground/demo2
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_5/playground/demo2%20-%20a.png?raw=true)
