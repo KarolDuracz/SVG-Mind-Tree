@@ -1,5 +1,11 @@
 <h2>PLAYGROUND</h2>
 
+Both demos are launched with the command
+
+```
+python server.py # works on localhost:5000 
+```
+
 > [!WARNING]  
 > There's a lot to do here. It's just a sketch.
 
