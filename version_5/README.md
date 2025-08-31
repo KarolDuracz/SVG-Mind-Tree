@@ -9,7 +9,7 @@ python server.py # works on localhost:5000
 > [!WARNING]  
 > There's a lot to do here. It's just a sketch.
 
-<b>GOAL : The goal is to answer the question of whether, by creating pieces of code, they can be written as blocks in space (in this case, as in the rect image on the canvas, somewhere in XY). Can then attempt to connect blocks together so that in this specific DEMO EXERCISE 1 and 2, the model can solve some problems, simple ones to start with? In this approach / exercise.</b>
+<b>GOAL : The goal is to answer the question of whether, by creating pieces of code ( in this particular case here ), they can be written as blocks in space (in this case, as in the rect image on the canvas, somewhere in XY). Can then attempt to connect blocks together so that in this specific DEMO EXERCISE 1 and 2, the model can solve some problems, simple ones to start with? In this approach / exercise.</b>
 
 <hr>
 
