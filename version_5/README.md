@@ -29,6 +29,32 @@ This creates a sequence like the one shown in the image:
 > [!NOTE]  
 > And then it repeats these steps for each piece of new code from the prompt. That is, you add the code, create a group, add it to the sequence, and you can connect blocks this way. BUT FOR NOW, THERE'S NO CHANGING THE CONTEXT, i.e., no intervening in the sequence. So it can't change the sequence, it just executes the code blocks one by one.
 
+Ok, maybe I'll explain what's going on in more detail
+
+```
+// demo 1
+1. Run python server.py for demo1 and go to localhost:5000
+2. Delete what's in the top left field where you enter text (prompts)
+3. Enter one line of text, e.g., "// add new function" or something easy
+4. Follow steps 1-6 from this image: save it, create a group, and play the sequence once to see the text in the top right field where it generates the text
+5. It should print "// add new function" on the right when you click the button marked (6) in the "Play sequence" image
+6. Below, you'll see something like this
+1: #9
+
+7. Return to the prompt window. Delete the text and enter another one, e.g.,
+function(a,b)
+{
+return a + b;
+}
+8. And again, save it, create a group, and follow steps 1-6.
+9. You should now see the sequence when you activate play sequence:
+1: #9 → 2: #10
+
+and so on
+```
+
+So, there's nothing here except for inserting a piece of text and combining it into a sequence (blocks). No databases, no MLP, nothing but a simple demo that can be further improved. And that's what I wanted for now. To have another piece of the puzzle.
+
 Demo 1 : https://github.com/KarolDuracz/SVG-Mind-Tree/tree/main/version_5/playground/demo1
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_5/playground/guide%20how%20it%20use.png?raw=true)
