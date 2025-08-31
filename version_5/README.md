@@ -74,6 +74,20 @@ Demo 2 : https://github.com/KarolDuracz/SVG-Mind-Tree/tree/main/version_5/playgr
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_5/playground/demo2%20-%20b.png?raw=true)
 
+<h3>Demo 3 </h3>
+
+Demo 3 : https://github.com/KarolDuracz/SVG-Mind-Tree/tree/main/version_5/playground/demo3
+
+This demo sets tokens with tiktoken.get_encoding("cl100k_base")
+and normalizes them to a canvas size of 1100 x 700, meaning 100k tokens have their own unique position on the cavas. And when you move them around on the canvas, each token displays a new ID for that position.
+
+1. Click save to fill the cavas with nodes.
+2. Change mode to interactive, move node.
+3. Enable "details" to see live information about the node and what token it is from the cl100k_base.
+4. Grab a node and move it around the canvas.
+
+![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_5/playground/demo3.png?raw=true)
+
 <hr>
 
 <h2>A little help - two_nodes_rect_connect_demo.html</h2>
