@@ -1,0 +1,207 @@
+2025-08-30 23:10:49,424 INFO Loaded tiktoken encoding cl100k_base
+2025-08-30 23:10:52,709 INFO Loaded tiktoken encoding cl100k_base
+2025-08-30 23:11:00,156 INFO Tokenize request: len(text)=78
+2025-08-30 23:11:00,166 INFO Tokenized prompt -> 23 tokens
+2025-08-30 23:11:00,172 INFO Tokens preview: 0:'//' | 1:' Example' | 2:' code' | 3:'\n' | 4:'function' | 5:' add' | 6:'(a' | 7:',' | 8:' b' | 9:')' | 10:' {\n' | 11:' ' | 12:' return' | 13:' a' | 14:' +' | 15:' b' | 16:';\n' | 17:'}\n' | 18:'//' | 19:' comment'
+2025-08-30 23:11:28,441 INFO Tokenize request: len(text)=315
+2025-08-30 23:11:28,441 INFO Tokenized prompt -> 95 tokens
+2025-08-30 23:11:28,441 INFO Tokens preview: 0:'//' | 1:' Example' | 2:' code' | 3:'\n' | 4:'function' | 5:' add' | 6:'(a' | 7:',' | 8:' b' | 9:')' | 10:' {\n' | 11:' ' | 12:' return' | 13:' a' | 14:' +' | 15:' b' | 16:';\n' | 17:'}\n' | 18:'//' | 19:' comment'
+2025-08-30 23:12:04,981 INFO Tokenize request: len(text)=106
+2025-08-30 23:12:04,981 INFO Tokenized prompt -> 35 tokens
+2025-08-30 23:12:04,981 INFO Tokens preview: 0:'//' | 1:' Example' | 2:' code' | 3:'\n' | 4:'function' | 5:' add' | 6:'(a' | 7:',' | 8:' b' | 9:')' | 10:' {\n' | 11:' ' | 12:' return' | 13:' a' | 14:' +' | 15:' b' | 16:';\n' | 17:'return' | 18:' ' | 19:'2'
+2025-08-30 23:12:50,782 INFO Tokenize request: len(text)=155
+2025-08-30 23:12:50,786 INFO Tokenized prompt -> 47 tokens
+2025-08-30 23:12:50,788 INFO Tokens preview: 0:'//' | 1:' Example' | 2:' code' | 3:'\n' | 4:'function' | 5:' add' | 6:'(a' | 7:',' | 8:' b' | 9:')' | 10:' {\n' | 11:' ' | 12:' return' | 13:' a' | 14:' +' | 15:' b' | 16:';\n' | 17:'return' | 18:' ' | 19:'2'
+2025-08-30 23:14:34,550 INFO Tokenize request: len(text)=1839
+2025-08-30 23:14:34,550 INFO Tokenized prompt -> 461 tokens
+2025-08-30 23:14:34,565 INFO Tokens preview: 0:'@app' | 1:'.route' | 2:'("/' | 3:'token' | 4:'ize' | 5:'",' | 6:' methods' | 7:'=["' | 8:'POST' | 9:'"])\n' | 10:'def' | 11:' tokenize' | 12:'():\n' | 13:'   ' | 14:' """\n' | 15:'   ' | 16:' Accept' | 17:' JSON' | 18:' {' | 19:' text'
+2025-08-30 23:14:58,910 INFO Tokenize request: len(text)=78
+2025-08-30 23:14:58,910 INFO Tokenized prompt -> 23 tokens
+2025-08-30 23:14:58,910 INFO Tokens preview: 0:'//' | 1:' Example' | 2:' code' | 3:'\n' | 4:'function' | 5:' add' | 6:'(a' | 7:',' | 8:' b' | 9:')' | 10:' {\n' | 11:' ' | 12:' return' | 13:' a' | 14:' +' | 15:' b' | 16:';\n' | 17:'}\n' | 18:'//' | 19:' comment'
+2025-08-30 23:14:59,177 INFO Tokenize request: len(text)=78
+2025-08-30 23:14:59,180 INFO Tokenized prompt -> 23 tokens
+2025-08-30 23:14:59,183 INFO Tokens preview: 0:'//' | 1:' Example' | 2:' code' | 3:'\n' | 4:'function' | 5:' add' | 6:'(a' | 7:',' | 8:' b' | 9:')' | 10:' {\n' | 11:' ' | 12:' return' | 13:' a' | 14:' +' | 15:' b' | 16:';\n' | 17:'}\n' | 18:'//' | 19:' comment'
+2025-08-30 23:15:02,152 INFO Tokenize request: len(text)=78
+2025-08-30 23:15:02,155 INFO Tokenized prompt -> 23 tokens
+2025-08-30 23:15:02,158 INFO Tokens preview: 0:'//' | 1:' Example' | 2:' code' | 3:'\n' | 4:'function' | 5:' add' | 6:'(a' | 7:',' | 8:' b' | 9:')' | 10:' {\n' | 11:' ' | 12:' return' | 13:' a' | 14:' +' | 15:' b' | 16:';\n' | 17:'}\n' | 18:'//' | 19:' comment'
+2025-08-30 23:15:27,088 INFO Tokenize request: len(text)=78
+2025-08-30 23:15:27,092 INFO Tokenized prompt -> 23 tokens
+2025-08-30 23:15:27,094 INFO Tokens preview: 0:'//' | 1:' Example' | 2:' code' | 3:'\n' | 4:'function' | 5:' add' | 6:'(a' | 7:',' | 8:' b' | 9:')' | 10:' {\n' | 11:' ' | 12:' return' | 13:' a' | 14:' +' | 15:' b' | 16:';\n' | 17:'}\n' | 18:'//' | 19:' comment'
+2025-08-30 23:15:50,145 INFO Tokenize request: len(text)=9091
+2025-08-30 23:15:50,181 INFO Tokenized prompt -> 2436 tokens
+2025-08-30 23:15:50,183 INFO Tokens preview: 0:'<!' | 1:'doctype' | 2:' html' | 3:'>\n' | 4:'<html' | 5:'>\n' | 6:'<head' | 7:'>\n' | 8:' ' | 9:' <' | 10:'meta' | 11:' charset' | 12:'="' | 13:'utf' | 14:'-' | 15:'8' | 16:'"' | 17:' />\n' | 18:' ' | 19:' <'
+2025-08-30 23:19:43,867 INFO Loaded tiktoken encoding cl100k_base
+2025-08-30 23:19:47,914 INFO Loaded tiktoken encoding cl100k_base
+2025-08-30 23:19:51,167 INFO Tokenize request: len(text)=94
+2025-08-30 23:19:51,171 INFO Tokenized prompt -> 25 tokens
+2025-08-30 23:19:51,175 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:20:09,817 INFO Tokenize request: len(text)=94
+2025-08-30 23:20:09,821 INFO Tokenized prompt -> 25 tokens
+2025-08-30 23:20:09,825 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:20:53,490 INFO Tokenize request: len(text)=15192
+2025-08-30 23:20:53,535 INFO Tokenized prompt -> 3961 tokens
+2025-08-30 23:20:53,535 INFO Tokens preview: 0:'<!' | 1:'doctype' | 2:' html' | 3:'>\n' | 4:'<html' | 5:'>\n' | 6:'<head' | 7:'>\n' | 8:' ' | 9:' <' | 10:'meta' | 11:' charset' | 12:'="' | 13:'utf' | 14:'-' | 15:'8' | 16:'"' | 17:' />\n' | 18:' ' | 19:' <'
+2025-08-30 23:25:19,715 INFO Loaded tiktoken encoding cl100k_base
+2025-08-30 23:25:23,257 INFO Loaded tiktoken encoding cl100k_base
+2025-08-30 23:25:30,706 INFO Tokenize request: len(text)=94
+2025-08-30 23:25:30,711 INFO Tokenized prompt -> 25 tokens
+2025-08-30 23:25:30,713 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:26:12,584 INFO Tokenize request: len(text)=94
+2025-08-30 23:26:12,587 INFO Tokenized prompt -> 25 tokens
+2025-08-30 23:26:12,589 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:26:37,376 INFO Tokenize request: len(text)=21168
+2025-08-30 23:26:37,457 INFO Tokenized prompt -> 5499 tokens
+2025-08-30 23:26:37,460 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:26:45,112 INFO Tokenize request: len(text)=21168
+2025-08-30 23:26:45,190 INFO Tokenized prompt -> 5499 tokens
+2025-08-30 23:26:45,190 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:27:05,173 INFO Tokenize request: len(text)=21168
+2025-08-30 23:27:05,241 INFO Tokenized prompt -> 5499 tokens
+2025-08-30 23:27:05,241 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:28:19,362 INFO Tokenize request: len(text)=24439
+2025-08-30 23:28:19,487 INFO Tokenized prompt -> 6332 tokens
+2025-08-30 23:28:19,503 INFO Tokens preview: 0:'from' | 1:' flask' | 2:' import' | 3:' Flask' | 4:',' | 5:' request' | 6:',' | 7:' jsonify' | 8:',' | 9:' send' | 10:'_file' | 11:'\n' | 12:'import' | 13:' tik' | 14:'token' | 15:'\n' | 16:'import' | 17:' hashlib' | 18:'\n' | 19:'import'
+2025-08-30 23:28:54,285 INFO Tokenize request: len(text)=31348
+2025-08-30 23:28:54,407 INFO Tokenized prompt -> 7743 tokens
+2025-08-30 23:28:54,409 INFO Tokens preview: 0:'from' | 1:' flask' | 2:' import' | 3:' Flask' | 4:',' | 5:' request' | 6:',' | 7:' jsonify' | 8:',' | 9:' send' | 10:'_file' | 11:'\n' | 12:'import' | 13:' tik' | 14:'token' | 15:'\n' | 16:'import' | 17:' hashlib' | 18:'\n' | 19:'import'
+2025-08-30 23:29:29,363 INFO Tokenize request: len(text)=20787
+2025-08-30 23:29:29,455 INFO Tokenized prompt -> 6708 tokens
+2025-08-30 23:29:29,460 INFO Tokens preview: 0:'def' | 1:' deterministic' | 2:'_position' | 3:'_for' | 4:'_token' | 5:'(token' | 6:'_key' | 7:':' | 8:' str' | 9:'):\n' | 10:'   ' | 11:' """\n' | 12:'   ' | 13:' Determin' | 14:'istically' | 15:' map' | 16:' a' | 17:' token' | 18:' key' | 19:' string'
+2025-08-30 23:33:01,376 INFO Tokenize request: len(text)=165
+2025-08-30 23:33:01,380 INFO Tokenized prompt -> 75 tokens
+2025-08-30 23:33:01,384 INFO Tokens preview: 0:'int' | 1:'\n' | 2:'int' | 3:'\n' | 4:'int' | 5:'int' | 6:'\n' | 7:'int' | 8:'\n' | 9:'int' | 10:'int' | 11:'\n' | 12:'int' | 13:'\n' | 14:'int' | 15:'int' | 16:'\n' | 17:'int' | 18:'\n' | 19:'int'
+2025-08-30 23:33:15,199 INFO Tokenize request: len(text)=176
+2025-08-30 23:33:15,210 INFO Tokenized prompt -> 79 tokens
+2025-08-30 23:33:15,212 INFO Tokens preview: 0:'int' | 1:'\n' | 2:'int' | 3:'\n' | 4:'int' | 5:'int' | 6:'\n' | 7:'int' | 8:'\n' | 9:'int' | 10:'int' | 11:'\n' | 12:'int' | 13:'\n' | 14:'int' | 15:'int' | 16:'\n' | 17:'int' | 18:'\n' | 19:'int'
+2025-08-30 23:36:51,075 INFO Loaded tiktoken encoding cl100k_base
+2025-08-30 23:36:54,356 INFO Loaded tiktoken encoding cl100k_base
+2025-08-30 23:36:57,494 INFO Tokenize request: len(text)=94
+2025-08-30 23:36:57,497 INFO Tokenized prompt -> 25 tokens
+2025-08-30 23:36:57,500 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:37:29,088 INFO Tokenize request: len(text)=94
+2025-08-30 23:37:29,091 INFO Tokenized prompt -> 25 tokens
+2025-08-30 23:37:29,093 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:38:12,849 INFO Tokenize request: len(text)=94
+2025-08-30 23:38:12,854 INFO Tokenized prompt -> 25 tokens
+2025-08-30 23:38:12,859 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:41:25,331 INFO Tokenize request: len(text)=94
+2025-08-30 23:41:25,334 INFO Tokenized prompt -> 25 tokens
+2025-08-30 23:41:25,336 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:42:00,288 INFO Tokenize request: len(text)=94
+2025-08-30 23:42:00,293 INFO Tokenized prompt -> 25 tokens
+2025-08-30 23:42:00,298 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:42:05,058 INFO Tokenize request: len(text)=94
+2025-08-30 23:42:05,062 INFO Tokenized prompt -> 25 tokens
+2025-08-30 23:42:05,063 INFO Tokens preview: 0:'//' | 1:' Example' | 2:':' | 3:' tokenize' | 4:' this' | 5:' code' | 6:'\n' | 7:'function' | 8:' greet' | 9:'(name' | 10:'){\n' | 11:' ' | 12:' return' | 13:' "' | 14:'Hello' | 15:',' | 16:' "' | 17:' +' | 18:' name' | 19:' +'
+2025-08-30 23:46:15,362 INFO Loaded encoding: cl100k_base
+2025-08-30 23:46:15,365 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-30 23:46:15,525 INFO Built positions for 10000 tokens...
+2025-08-30 23:46:15,719 INFO Built positions for 20000 tokens...
+2025-08-30 23:46:15,886 INFO Built positions for 30000 tokens...
+2025-08-30 23:46:16,062 INFO Built positions for 40000 tokens...
+2025-08-30 23:46:16,232 INFO Built positions for 50000 tokens...
+2025-08-30 23:46:16,403 INFO Built positions for 60000 tokens...
+2025-08-30 23:46:16,631 INFO Built positions for 70000 tokens...
+2025-08-30 23:46:16,796 INFO Built positions for 80000 tokens...
+2025-08-30 23:46:16,964 INFO Built positions for 90000 tokens...
+2025-08-30 23:46:17,199 INFO Vocabulary grid built: tokens=100000 grid=200x200 time=1.83s
+2025-08-30 23:46:20,566 INFO Loaded encoding: cl100k_base
+2025-08-30 23:46:20,568 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-30 23:46:20,733 INFO Built positions for 10000 tokens...
+2025-08-30 23:46:20,927 INFO Built positions for 20000 tokens...
+2025-08-30 23:46:21,103 INFO Built positions for 30000 tokens...
+2025-08-30 23:46:21,294 INFO Built positions for 40000 tokens...
+2025-08-30 23:46:21,481 INFO Built positions for 50000 tokens...
+2025-08-30 23:46:21,716 INFO Built positions for 60000 tokens...
+2025-08-30 23:46:21,928 INFO Built positions for 70000 tokens...
+2025-08-30 23:46:22,122 INFO Built positions for 80000 tokens...
+2025-08-30 23:46:22,513 INFO Built positions for 90000 tokens...
+2025-08-30 23:46:22,746 INFO Vocabulary grid built: tokens=100000 grid=200x200 time=2.18s
+2025-08-30 23:46:23,051 INFO Tokenize request: len(text)=94
+2025-08-30 23:46:23,056 INFO Tokenized prompt -> 25 tokens (prompt_key=17119532f4907557c10f5576f4ef65ffefb84eae494823dcefafe31d7295dcd2)
+2025-08-30 23:46:32,808 INFO Tokenize request: len(text)=65
+2025-08-30 23:46:32,812 INFO Tokenized prompt -> 17 tokens (prompt_key=ca9720260a35737944dd5f2a847b78c1da6cae07a0f31b05a11bd7012c82c37f)
+2025-08-30 23:47:51,800 INFO Tokenize request: len(text)=24880
+2025-08-30 23:47:51,878 INFO Tokenized prompt -> 6483 tokens (prompt_key=7d3f3a26747ec91bef9d856e4b45edd2f8bcafc721e3e9902a11ce84dcfc87dc)
+2025-08-30 23:48:59,019 INFO Tokenize request: len(text)=9
+2025-08-30 23:48:59,024 INFO Tokenized prompt -> 3 tokens (prompt_key=0a71e9ecdcf36ef1239a5e9a783a77321742e9b3a18e92e0f597c477fab76a9e)
+2025-08-30 23:49:16,289 INFO Tokenize request: len(text)=23
+2025-08-30 23:49:16,295 INFO Tokenized prompt -> 7 tokens (prompt_key=c292045c31c29d9c8ff360589be63b35453fba904e311a0395aabfb4ea89ad6d)
+2025-08-30 23:49:19,456 INFO Tokenize request: len(text)=23
+2025-08-30 23:49:19,460 INFO Tokenized prompt -> 7 tokens (prompt_key=c292045c31c29d9c8ff360589be63b35453fba904e311a0395aabfb4ea89ad6d)
+2025-08-30 23:49:46,550 INFO Tokenize request: len(text)=23
+2025-08-30 23:49:46,556 INFO Tokenized prompt -> 7 tokens (prompt_key=c292045c31c29d9c8ff360589be63b35453fba904e311a0395aabfb4ea89ad6d)
+2025-08-30 23:50:34,863 INFO Tokenize request: len(text)=23
+2025-08-30 23:50:34,873 INFO Tokenized prompt -> 7 tokens (prompt_key=c292045c31c29d9c8ff360589be63b35453fba904e311a0395aabfb4ea89ad6d)
+2025-08-30 23:50:47,751 INFO Tokenize request: len(text)=86
+2025-08-30 23:50:47,756 INFO Tokenized prompt -> 31 tokens (prompt_key=8eb43a5294bedbf2362e8cbc683cd8a4a966e5998f0a6fadf28e2c3423762bc5)
+2025-08-30 23:51:33,660 INFO Tokenize request: len(text)=6622
+2025-08-30 23:51:33,690 INFO Tokenized prompt -> 1704 tokens (prompt_key=a11865f64258fb8fc2fe2ec49625c2b0f23732423227d3375d72a5f0083bce41)
+2025-08-30 23:52:26,113 INFO Tokenize request: len(text)=24880
+2025-08-30 23:52:26,199 INFO Tokenized prompt -> 6483 tokens (prompt_key=7d3f3a26747ec91bef9d856e4b45edd2f8bcafc721e3e9902a11ce84dcfc87dc)
+2025-08-31 00:00:46,327 INFO Tokenize request: len(text)=59
+2025-08-31 00:00:46,336 INFO Tokenized prompt -> 11 tokens (prompt_key=f98539dcca4efd8db912b29c2a784215bd58dc1348b7daecb1ea0638925b1270)
+2025-08-31 00:01:03,399 INFO Tokenize request: len(text)=59
+2025-08-31 00:01:03,403 INFO Tokenized prompt -> 11 tokens (prompt_key=f98539dcca4efd8db912b29c2a784215bd58dc1348b7daecb1ea0638925b1270)
+2025-08-31 00:02:00,252 INFO Tokenize request: len(text)=811
+2025-08-31 00:02:00,261 INFO Tokenized prompt -> 176 tokens (prompt_key=67e1db1e6f7cfe433e57e85422a29021345efac4e1ee0b30975eeba605e5e78c)
+2025-08-31 00:04:54,579 INFO Tokenize request: len(text)=147
+2025-08-31 00:04:54,583 INFO Tokenized prompt -> 41 tokens (prompt_key=741c64f575e81497858268c3cc223af1aa81a167ccb59e40f29c09f698cd5b96)
+2025-08-31 00:05:37,702 INFO Tokenize request: len(text)=35
+2025-08-31 00:05:37,709 INFO Tokenized prompt -> 11 tokens (prompt_key=d8e6187d6ae54b73b010ef746439553a41b524619a5c39458096f16ff56b8abb)
+2025-08-31 00:23:31,643 INFO Tokenize request: len(text)=33
+2025-08-31 00:23:31,647 INFO Tokenized prompt -> 15 tokens (prompt_key=a28932c99c070d74dbdca434d06766596503bb56104f79cef41086c5cdf9be4d)
+2025-08-31 00:23:45,763 INFO Tokenize request: len(text)=682
+2025-08-31 00:23:45,779 INFO Tokenized prompt -> 407 tokens (prompt_key=2cda3d0b6805a3f56fb6bd43964b69fa248c9f3b76178b9b61c14e6d835f8cec)
+2025-08-31 14:26:30,649 INFO Loaded encoding: cl100k_base
+2025-08-31 14:26:30,651 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 14:26:30,860 INFO Built positions for 10000 tokens...
+2025-08-31 14:26:31,074 INFO Built positions for 20000 tokens...
+2025-08-31 14:26:31,248 INFO Built positions for 30000 tokens...
+2025-08-31 14:26:31,421 INFO Built positions for 40000 tokens...
+2025-08-31 14:26:31,602 INFO Built positions for 50000 tokens...
+2025-08-31 14:26:31,773 INFO Built positions for 60000 tokens...
+2025-08-31 14:26:32,003 INFO Built positions for 70000 tokens...
+2025-08-31 14:26:32,176 INFO Built positions for 80000 tokens...
+2025-08-31 14:26:32,365 INFO Built positions for 90000 tokens...
+2025-08-31 14:26:32,544 INFO Vocabulary grid built: tokens=100000 grid=200x200 time=1.89s
+2025-08-31 14:26:37,821 INFO Loaded encoding: cl100k_base
+2025-08-31 14:26:37,876 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 14:26:38,690 INFO Built positions for 10000 tokens...
+2025-08-31 14:26:39,171 INFO Built positions for 20000 tokens...
+2025-08-31 14:26:39,564 INFO Built positions for 30000 tokens...
+2025-08-31 14:26:39,878 INFO Built positions for 40000 tokens...
+2025-08-31 14:26:40,403 INFO Built positions for 50000 tokens...
+2025-08-31 14:26:40,865 INFO Built positions for 60000 tokens...
+2025-08-31 14:26:41,223 INFO Built positions for 70000 tokens...
+2025-08-31 14:26:41,474 INFO Built positions for 80000 tokens...
+2025-08-31 14:26:41,729 INFO Built positions for 90000 tokens...
+2025-08-31 14:26:42,048 INFO Vocabulary grid built: tokens=100000 grid=200x200 time=4.17s
+2025-08-31 14:26:44,696 INFO Tokenize request: len(text)=65
+2025-08-31 14:26:44,703 INFO Tokenized prompt -> 17 tokens (prompt_key=ca9720260a35737944dd5f2a847b78c1da6cae07a0f31b05a11bd7012c82c37f)
+2025-08-31 14:29:49,709 INFO Loaded encoding: cl100k_base
+2025-08-31 14:29:49,715 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 14:29:50,049 INFO Built positions for 10000 tokens...
+2025-08-31 14:29:50,359 INFO Built positions for 20000 tokens...
+2025-08-31 14:29:50,632 INFO Built positions for 30000 tokens...
+2025-08-31 14:29:50,895 INFO Built positions for 40000 tokens...
+2025-08-31 14:29:51,150 INFO Built positions for 50000 tokens...
+2025-08-31 14:29:51,384 INFO Built positions for 60000 tokens...
+2025-08-31 14:29:51,719 INFO Built positions for 70000 tokens...
+2025-08-31 14:29:52,103 INFO Built positions for 80000 tokens...
+2025-08-31 14:29:52,604 INFO Built positions for 90000 tokens...
+2025-08-31 14:29:53,280 INFO Vocabulary grid built: tokens=100000 grid=200x200 time=3.56s
+2025-08-31 14:30:01,997 INFO Loaded encoding: cl100k_base
+2025-08-31 14:30:02,003 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 14:30:02,322 INFO Built positions for 10000 tokens...
+2025-08-31 14:30:02,709 INFO Built positions for 20000 tokens...
+2025-08-31 14:30:03,051 INFO Built positions for 30000 tokens...
+2025-08-31 14:30:03,369 INFO Built positions for 40000 tokens...
+2025-08-31 14:30:03,651 INFO Built positions for 50000 tokens...
+2025-08-31 14:30:03,963 INFO Built positions for 60000 tokens...
+2025-08-31 14:30:04,474 INFO Built positions for 70000 tokens...
+2025-08-31 14:30:04,881 INFO Built positions for 80000 tokens...
+2025-08-31 14:30:05,242 INFO Built positions for 90000 tokens...
+2025-08-31 14:30:05,775 INFO Vocabulary grid built: tokens=100000 grid=200x200 time=3.77s
+2025-08-31 14:30:08,404 INFO Tokenize request: len(text)=65
+2025-08-31 14:30:08,410 INFO Tokenized prompt -> 17 tokens (prompt_key=ca9720260a35737944dd5f2a847b78c1da6cae07a0f31b05a11bd7012c82c37f)

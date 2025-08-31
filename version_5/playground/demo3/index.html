@@ -1,0 +1,480 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Token Vector Animator — full vocalizer lookup</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { --left-w: 340px; --right-w: 340px; }
+    html,body { height:100%; margin:0; }
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; display:flex; height:100vh; }
+    #left { width:var(--left-w); padding:12px; box-sizing:border-box; border-right:1px solid #eee; overflow:auto; }
+    #center { flex:1; position:relative; display:flex; flex-direction:column; align-items:stretch; background:#fff; }
+    #right { width:var(--right-w); padding:12px; box-sizing:border-box; border-left:1px solid #eee; overflow:auto; }
+    textarea { width:100%; height:150px; font-family:monospace; font-size:13px; box-sizing:border-box; }
+    button { padding:8px 10px; font-size:13px; }
+    label { font-size:13px; display:inline-flex; align-items:center; gap:8px; }
+    #controls { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+    #promptList { width:100%; margin-top:8px; height:110px; box-sizing:border-box; }
+    #canvasWrap { padding:12px; box-sizing:border-box; flex:1; display:flex; align-items:center; justify-content:center; }
+    canvas { background:white; border:1px solid #ddd; box-shadow: 0 1px 4px rgba(0,0,0,0.03); cursor:pointer; }
+    #topInfo { position:absolute; left:16px; top:12px; background:rgba(255,255,255,0.96); padding:6px 8px; border:1px solid #eee; font-size:13px; display:flex; gap:12px; align-items:center; z-index:20; }
+    .tab { padding:6px 8px; cursor:pointer; border-radius:4px; }
+    .tab.active { background:#f0f0f0; border:1px solid #ddd; }
+    #tokenCount { font-weight:700; margin-left:6px; }
+    #detailsBox { font-family:monospace; font-size:12px; max-width:420px; white-space:pre-wrap; display:none; }
+    #log { margin-top:8px; font-family:monospace; font-size:12px; height:120px; overflow:auto; background:#fafafa; border:1px solid #eee; padding:6px; white-space:pre-wrap; }
+    #generatedText { height: calc(100% - 40px); white-space: pre-wrap; background:#fff; border:1px solid #eee; padding:8px; overflow:auto; font-family:monospace; font-size:13px; }
+    .small { font-size:12px; color:#444; }
+    .controls-row { display:flex; gap:8px; align-items:center; }
+  </style>
+</head>
+<body>
+  <div id="left">
+    <h3>Token Vector Animator</h3>
+
+    <div>
+      <label for="txt">Text / Code to tokenize</label>
+      <textarea id="txt" placeholder="Paste code or any text here..."></textarea>
+    </div>
+
+    <div id="controls">
+      <button id="btnTokenize">Tokenize & Save</button>
+      <button id="btnPlaySaved">Play Selected</button>
+      <button id="btnReplayLast">Replay Last</button>
+      <button id="btnStop">Stop</button>
+      <button id="btnClear">Clear Saved</button>
+      <button id="btnResetDefaults">Reset Defaults</button>
+    </div>
+
+    <div style="margin-top:8px;">
+      <label><input type="checkbox" id="chkDrawArrows" checked> Draw arrows</label>
+      <label style="margin-left:12px;"><input type="checkbox" id="chkFastMode"> Fast mode</label>
+    </div>
+
+    <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+      <div>
+        <button id="zoomIn">Zoom +</button>
+        <button id="zoomOut">Zoom −</button>
+        <button id="zoomReset">Reset Zoom</button>
+      </div>
+      <div style="margin-left:8px;">
+        <label class="small">Mode:</label>
+        <select id="modeSelect" title="Choose Play or Move Node">
+          <option value="play">Play</option>
+          <option value="move">Move Node</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:8px;">
+      <div class="small">Saved prompts</div>
+      <select id="promptList" size="6"></select>
+    </div>
+
+    <div style="margin-top:8px;" class="small">Console log</div>
+    <div id="log">ready. checking vocab...</div>
+  </div>
+
+  <div id="center">
+    <div id="topInfo">
+      <div id="tabTokens" class="tab active">Tokens: <span id="tokenCount">0</span></div>
+      <div id="tabDetails" class="tab">Details</div>
+      <div id="detailsBox">Click token or move across canvas to query vocab token.</div>
+    </div>
+
+    <div id="canvasWrap">
+      <canvas id="c" width="1100" height="700" tabindex="0" title="Click token to select / drag in Move mode"></canvas>
+    </div>
+  </div>
+
+  <div id="right">
+    <h4>Generated text (progressive)</h4>
+    <div id="generatedText"></div>
+    <div style="margin-top:10px;">
+      <button id="btnClearGenerated">Clear Generated</button>
+    </div>
+  </div>
+
+<script>
+(async function(){
+  // DOM refs
+  const txt = document.getElementById('txt');
+  const btnTokenize = document.getElementById('btnTokenize');
+  const btnPlaySaved = document.getElementById('btnPlaySaved');
+  const btnReplayLast = document.getElementById('btnReplayLast');
+  const btnStop = document.getElementById('btnStop');
+  const btnClear = document.getElementById('btnClear');
+  const btnResetDefaults = document.getElementById('btnResetDefaults');
+  const promptList = document.getElementById('promptList');
+  const chkDrawArrows = document.getElementById('chkDrawArrows');
+  const chkFastMode = document.getElementById('chkFastMode');
+  const logDiv = document.getElementById('log');
+  const tokenCountSpan = document.getElementById('tokenCount');
+  const generatedTextDiv = document.getElementById('generatedText');
+  const btnClearGenerated = document.getElementById('btnClearGenerated');
+  const zoomInBtn = document.getElementById('zoomIn');
+  const zoomOutBtn = document.getElementById('zoomOut');
+  const zoomResetBtn = document.getElementById('zoomReset');
+  const modeSelect = document.getElementById('modeSelect');
+
+  // Tabs & details
+  const tabTokens = document.getElementById('tabTokens');
+  const tabDetails = document.getElementById('tabDetails');
+  const detailsBox = document.getElementById('detailsBox');
+
+  // Canvas and buffer
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const WIDTH = canvas.width, HEIGHT = canvas.height;
+  const PADDING = 60;
+
+  const buffer = document.createElement('canvas'); buffer.width = WIDTH; buffer.height = HEIGHT;
+  const bctx = buffer.getContext('2d');
+
+  // Memory
+  const sequences = new Map(); // key -> { text, tokens }
+  let lastKey = null;
+  let currentTokens = []; // tokens currently loaded (for canvas)
+  let selectedTokenIndex = -1;
+  let hoveredTokenIndex = -1;
+
+  // Playback control
+  let playing = false;
+  let stopRequested = false;
+
+  // Drag state
+  let dragging = false;
+  let dragIndex = -1;
+  let dragOffset = {x:0,y:0};
+
+  // Zoom
+  let zoom = 1.0;
+  const ZOOM_STEP = 1.25, ZOOM_MIN = 0.25, ZOOM_MAX = 6.0;
+
+  // UI default
+  const DEFAULTS = { zoom: 1.0, drawArrows: true, fastMode: false, mode: 'play' };
+
+  // Throttle for server token_at queries
+  let lastQueryAt = 0;
+  const QUERY_MIN_MS = 40; // limit queries to at most ~25Hz (adjustable)
+
+  function log(...args){
+    const s = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+    console.log(s);
+    logDiv.textContent += '\n' + s;
+    logDiv.scrollTop = logDiv.scrollHeight;
+  }
+
+  // initial vocab readiness check
+  async function fetchVocabInfo(){
+    try {
+      const r = await fetch('/vocab_info');
+      if (!r.ok) { log('vocab_info error', r.status); return null; }
+      return await r.json();
+    } catch (e){ log('vocab_info fetch error', e); return null; }
+  }
+  const vi = await fetchVocabInfo();
+  if (vi) {
+    log('vocab_info', vi);
+  } else {
+    log('Failed to fetch vocab_info. Server may not have built full vocab.');
+  }
+
+  // Server helpers
+  async function tokenizeOnServer(text){
+    try {
+      const resp = await fetch('/tokenize', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text})
+      });
+      if (!resp.ok){
+        const err = await resp.text(); log('tokenize error', resp.status, err); return null;
+      }
+      return await resp.json();
+    } catch (e){ log('tokenize request error', e); return null; }
+  }
+
+  async function tokenAtNormalized(x,y){
+    // throttle queries
+    const now = Date.now();
+    if (now - lastQueryAt < QUERY_MIN_MS) {
+      return null;
+    }
+    lastQueryAt = now;
+    try {
+      const resp = await fetch('/token_at', {
+        method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({x,y})
+      });
+      if (!resp.ok) { log('token_at failed', resp.status); return null; }
+      const data = await resp.json();
+      return data;
+    } catch (e){ log('token_at network error', e); return null; }
+  }
+
+  function saveSequence(key, text, tokens){
+    sequences.set(key, { text, tokens });
+    if (![...promptList.options].some(o => o.value === key)){
+      const opt = document.createElement('option'); opt.value = key;
+      opt.textContent = text.length>70 ? text.slice(0,66)+'…' : text;
+      promptList.appendChild(opt);
+    }
+    promptList.value = key; lastKey = key;
+    currentTokens = tokens.slice();
+    tokenCountSpan.textContent = tokens.length;
+  }
+
+  // mapping normalized->pixel and back (centered zoom)
+  function toPixel(t){ const worldW=(WIDTH-PADDING*2)*zoom, worldH=(HEIGHT-PADDING*2)*zoom; return { x:Math.round(WIDTH/2 + (t.x - 0.5)*worldW), y:Math.round(HEIGHT/2 + (t.y - 0.5)*worldH) }; }
+  function pixelToNorm(px,py){ const worldW=(WIDTH-PADDING*2)*zoom, worldH=(HEIGHT-PADDING*2)*zoom; const nx = ((px - WIDTH/2)/worldW)+0.5; const ny = ((py - HEIGHT/2)/worldH)+0.5; return { x: Math.max(0,Math.min(1,nx)), y: Math.max(0,Math.min(1,ny)) }; }
+
+  // Draw buffer: tokens + optional static lines
+  function drawStaticBuffer(tokens, drawLines){
+    bctx.clearRect(0,0,WIDTH,HEIGHT);
+    bctx.fillStyle = '#fff'; bctx.fillRect(0,0,WIDTH,HEIGHT);
+    if (drawLines){
+      bctx.strokeStyle = '#eee'; bctx.lineWidth = 1;
+      for (let i=0;i<tokens.length-1;i++){
+        const a=toPixel(tokens[i]), b=toPixel(tokens[i+1]);
+        bctx.beginPath(); bctx.moveTo(a.x,a.y); bctx.lineTo(b.x,b.y); bctx.stroke();
+      }
+    }
+    for (let i=0;i<tokens.length;i++){
+      const t = tokens[i]; const p = toPixel(t);
+      bctx.beginPath(); bctx.fillStyle = '#87CEEB'; bctx.arc(p.x,p.y,10,0,Math.PI*2); bctx.fill();
+      bctx.fillStyle = '#000'; bctx.font = '11px monospace'; bctx.textAlign='center'; bctx.textBaseline='middle';
+      const short = (t.token_text||'').replace(/\s+/g,' '); const label = (short && short.length <= 6) ? short : (short.length>6 ? short.slice(0,6)+'…' : String(t.token_id));
+      bctx.fillText(label, p.x, p.y);
+    }
+  }
+
+  function drawArrowOnCtx(ctxUse, fromPx, toPx, color='#666'){ ctxUse.strokeStyle=color; ctxUse.lineWidth=2; ctxUse.beginPath(); ctxUse.moveTo(fromPx.x,fromPx.y); ctxUse.lineTo(toPx.x,toPx.y); ctxUse.stroke(); const dx=toPx.x-fromPx.x, dy=toPx.y-fromPx.y, ang=Math.atan2(dy,dx), head=10; ctxUse.beginPath(); ctxUse.fillStyle=color; ctxUse.moveTo(toPx.x,toPx.y); ctxUse.lineTo(toPx.x-head*Math.cos(ang-Math.PI/6),toPx.y-head*Math.sin(ang-Math.PI/6)); ctxUse.lineTo(toPx.x-head*Math.cos(ang+Math.PI/6),toPx.y-head*Math.sin(ang+Math.PI/6)); ctxUse.closePath(); ctxUse.fill(); }
+
+  function compositeFrame(tokens, highlightIndex=-1, movingPos=null, drawArrow=false, arrowFrom=null, arrowTo=null){
+    ctx.clearRect(0,0,WIDTH,HEIGHT); ctx.drawImage(buffer,0,0);
+    if (hoveredTokenIndex>=0 && tokens[hoveredTokenIndex]){ const p=toPixel(tokens[hoveredTokenIndex]); ctx.beginPath(); ctx.strokeStyle='#888'; ctx.lineWidth=2; ctx.arc(p.x,p.y,12,0,Math.PI*2); ctx.stroke(); }
+    if (drawArrow && arrowFrom && arrowTo){ drawArrowOnCtx(ctx, arrowFrom, arrowTo, '#666'); }
+    if (highlightIndex>=0 && tokens[highlightIndex]){ const p=toPixel(tokens[highlightIndex]); ctx.beginPath(); ctx.fillStyle='#FFD700'; ctx.arc(p.x,p.y,14,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.font='12px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(String(tokens[highlightIndex].token_id), p.x, p.y); }
+    if (movingPos){ ctx.beginPath(); ctx.fillStyle='#FFD700'; ctx.arc(movingPos.x,movingPos.y,8,0,Math.PI*2); ctx.fill(); }
+  }
+
+  function findNearestTokenIndex(mouseX, mouseY, tokens, radius=14){
+    if (!tokens || tokens.length===0) return -1;
+    let best=-1, bestDist=Infinity;
+    for (let i=0;i<tokens.length;i++){
+      const p=toPixel(tokens[i]); const dx=p.x-mouseX, dy=p.y-mouseY, d=dx*dx+dy*dy;
+      if (d < bestDist){ bestDist=d; best=i; }
+    }
+    if (bestDist <= radius*radius) return best;
+    return -1;
+  }
+
+  function updateDetailsForIndex(idx){
+    if (idx===-1){ detailsBox.textContent='Click a token to see details.'; return; }
+    const t = currentTokens[idx]; if (!t){ detailsBox.textContent='No data'; return; }
+    const p = toPixel(t);
+    const s = [`index: ${idx}`, `token_id: ${t.token_id}`, `token_text: ${String(t.token_text)}`, `normalized x,y: ${t.x.toFixed(6)}, ${t.y.toFixed(6)}`, `pixel x,y: ${p.x}, ${p.y}`].join('\n');
+    detailsBox.textContent = s;
+  }
+
+  // replace token instance at index with new token (newToken from server token_at)
+  function replaceTokenAtIndex(index, newToken){
+    if (!currentTokens || index < 0 || index >= currentTokens.length) return;
+    currentTokens[index].token_id = newToken.token_id;
+    currentTokens[index].token_text = newToken.token_text;
+    currentTokens[index].x = newToken.x;
+    currentTokens[index].y = newToken.y;
+  }
+
+  // Replace across saved sequences where token key matches; called after snapping to nearest
+  function replaceTokenAcrossSequences(oldKey, newToken){
+    for (const [k, seq] of sequences.entries()){
+      let changed=false;
+      for (const tok of seq.tokens){
+        const key = `${tok.token_id}:${tok.token_text}`;
+        if (key === oldKey){
+          tok.token_id = newToken.token_id; tok.token_text = newToken.token_text; tok.x = newToken.x; tok.y = newToken.y; changed=true;
+        }
+      }
+      if (changed && promptList.value === k){
+        currentTokens = seq.tokens.slice();
+      }
+    }
+  }
+
+  // playback (same as before)
+  async function playSequence(tokens){
+    if (!tokens || tokens.length===0) return;
+    tokenCountSpan.textContent = tokens.length;
+    const drawArrowsNow = chkDrawArrows.checked, fastMode = chkFastMode.checked;
+    log('Playing sequence', tokens.length, 'drawArrows=', drawArrowsNow, 'fast=', fastMode);
+    drawStaticBuffer(tokens, drawArrowsNow && fastMode);
+    compositeFrame(tokens, -1, null);
+    generatedTextDiv.textContent = '';
+    playing = true; stopRequested = false;
+    if (fastMode){
+      const perStep=40;
+      for (let i=0;i<tokens.length;i++){
+        if (stopRequested) break;
+        selectedTokenIndex = i; updateDetailsForIndex(selectedTokenIndex);
+        const t=tokens[i]; if (t && t.token_text){ generatedTextDiv.textContent += String(t.token_text); generatedTextDiv.scrollTop = generatedTextDiv.scrollHeight; }
+        compositeFrame(tokens, i, null, false);
+        await new Promise(r=>setTimeout(r, perStep));
+      }
+      playing=false; stopRequested=false; log('Fast finished'); return;
+    }
+    for (let i=0;i<tokens.length-1;i++){
+      if (stopRequested) break;
+      const a=tokens[i], b=tokens[i+1];
+      if (a && a.token_text){ generatedTextDiv.textContent += String(a.token_text); generatedTextDiv.scrollTop = generatedTextDiv.scrollHeight; }
+      selectedTokenIndex = i; updateDetailsForIndex(selectedTokenIndex);
+      const aPx = toPixel(a), bPx = toPixel(b);
+      const dist = Math.hypot(bPx.x-aPx.x, bPx.y-aPx.y);
+      const base=420; const duration = Math.min(1200, Math.max(220, Math.round(base*(dist/250))));
+      const start = performance.now();
+      await new Promise(res => {
+        function step(now){
+          if (stopRequested){ res(); return; }
+          const t = Math.min(1, (now-start)/duration);
+          const cx = aPx.x + (bPx.x - aPx.x)*t, cy = aPx.y + (bPx.y - aPx.y)*t;
+          const arrowFrom = drawArrowsNow ? aPx : null; const arrowTo = drawArrowsNow ? bPx : null;
+          compositeFrame(tokens, i, {x:cx, y:cy}, drawArrowsNow, arrowFrom, arrowTo);
+          if (t < 1) requestAnimationFrame(step); else res();
+        }
+        requestAnimationFrame(step);
+      });
+      selectedTokenIndex = i+1; updateDetailsForIndex(selectedTokenIndex);
+      compositeFrame(tokens, selectedTokenIndex, null, drawArrowsNow, aPx, bPx);
+      await new Promise(r=>setTimeout(r, 120));
+    }
+    if (!stopRequested){
+      const last = tokens[tokens.length-1];
+      if (last && last.token_text){ generatedTextDiv.textContent += String(last.token_text); generatedTextDiv.scrollTop = generatedTextDiv.scrollHeight; }
+      selectedTokenIndex = tokens.length-1; updateDetailsForIndex(selectedTokenIndex); compositeFrame(tokens, selectedTokenIndex, null, false);
+      log('Playback finished');
+    } else { log('Playback stopped'); }
+    playing=false; stopRequested=false;
+  }
+
+  // UI handlers (tokenize/save/play/clear/stop etc.)
+  btnTokenize.addEventListener('click', async ()=>{
+    const text = txt.value || ''; if (!text.trim()){ alert('Type text'); return; }
+    log('Tokenize request...'); const res = await tokenizeOnServer(text); if (!res) return;
+    saveSequence(res.prompt_key, text, res.tokens); lastKey = res.prompt_key;
+    drawStaticBuffer(res.tokens, chkDrawArrows.checked && chkFastMode.checked); compositeFrame(res.tokens);
+  });
+
+  btnPlaySaved.addEventListener('click', async ()=>{
+    const key = promptList.value; if (!key){ alert('Select prompt'); return; }
+    const seq = sequences.get(key); if (!seq){ alert('Not found'); return; }
+    currentTokens = seq.tokens.slice(); tokenCountSpan.textContent = currentTokens.length;
+    drawStaticBuffer(currentTokens, chkDrawArrows.checked && chkFastMode.checked); await playSequence(currentTokens);
+  });
+
+  btnReplayLast.addEventListener('click', async ()=>{
+    if (!lastKey){ alert('No last'); return; } const seq = sequences.get(lastKey); if (!seq){ alert('Not found'); return; }
+    currentTokens = seq.tokens.slice(); drawStaticBuffer(currentTokens, chkDrawArrows.checked && chkFastMode.checked); await playSequence(currentTokens);
+  });
+
+  btnStop.addEventListener('click', ()=>{ if (playing) { stopRequested = true; log('Stop requested'); } if (dragging){ dragging=false; dragIndex=-1; log('Drag cancelled'); } });
+
+  btnClear.addEventListener('click', ()=>{ sequences.clear(); promptList.innerHTML=''; lastKey=null; currentTokens=[]; selectedTokenIndex=-1; hoveredTokenIndex=-1; ctx.clearRect(0,0,WIDTH,HEIGHT); bctx.clearRect(0,0,WIDTH,HEIGHT); tokenCountSpan.textContent='0'; generatedTextDiv.textContent=''; log('Cleared all'); });
+
+  btnResetDefaults.addEventListener('click', ()=>{ zoom=DEFAULTS.zoom; chkDrawArrows.checked=DEFAULTS.drawArrows; chkFastMode.checked=DEFAULTS.fastMode; modeSelect.value=DEFAULTS.mode; drawStaticBuffer(currentTokens, chkDrawArrows.checked && chkFastMode.checked); compositeFrame(currentTokens, selectedTokenIndex, null); log('Defaults restored (UI)'); });
+
+  btnClearGenerated.addEventListener('click', ()=>{ generatedTextDiv.textContent=''; });
+
+  // zoom
+  function setZoom(z){ zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)); if (currentTokens && currentTokens.length) { drawStaticBuffer(currentTokens, chkDrawArrows.checked && chkFastMode.checked); compositeFrame(currentTokens, selectedTokenIndex, null); } else { bctx.clearRect(0,0,WIDTH,HEIGHT); ctx.clearRect(0,0,WIDTH,HEIGHT); } log('Zoom', zoom.toFixed(2)); }
+  zoomInBtn.addEventListener('click', ()=> setZoom(zoom * ZOOM_STEP));
+  zoomOutBtn.addEventListener('click', ()=> setZoom(zoom / ZOOM_STEP));
+  zoomResetBtn.addEventListener('click', ()=> setZoom(1.0));
+
+  // prompt select: show tokens
+  promptList.addEventListener('change', ()=>{ const k = promptList.value; if (!k) return; const seq = sequences.get(k); if (!seq) return; currentTokens = seq.tokens.slice(); tokenCountSpan.textContent = currentTokens.length; drawStaticBuffer(currentTokens, chkDrawArrows.checked && chkFastMode.checked); compositeFrame(currentTokens); generatedTextDiv.textContent=''; selectedTokenIndex=-1; updateDetailsForIndex(-1); });
+
+  // canvas interactions
+  canvas.addEventListener('mousedown', (ev)=> {
+    const rect = canvas.getBoundingClientRect(); const mx = ev.clientX - rect.left; const my = ev.clientY - rect.top;
+    if (modeSelect.value === 'move' && currentTokens && currentTokens.length){
+      const idx = findNearestTokenIndex(mx, my, currentTokens, 14);
+      if (idx >= 0){ dragging = true; dragIndex = idx; const p = toPixel(currentTokens[idx]); dragOffset.x = p.x - mx; dragOffset.y = p.y - my; log('Start drag', idx); }
+    } else {
+      if (currentTokens && currentTokens.length){
+        const idx = findNearestTokenIndex(mx, my, currentTokens, 14); selectedTokenIndex = idx; updateDetailsForIndex(idx); compositeFrame(currentTokens, selectedTokenIndex, null);
+      }
+    }
+  });
+
+  canvas.addEventListener('mousemove', async (ev)=> {
+    const rect = canvas.getBoundingClientRect(); const mx = ev.clientX - rect.left; const my = ev.clientY - rect.top;
+    if (dragging && dragIndex >= 0 && modeSelect.value === 'move'){
+      const px = mx + dragOffset.x, py = my + dragOffset.y;
+      const norm = pixelToNorm(px, py);
+      // ask server for nearest token in the whole vocalizer for this normalized position
+      const tok = await tokenAtNormalized(norm.x, norm.y);
+      if (tok){
+        // replace dragged token instance with this nearest token (token_id/text/position)
+        replaceTokenAtIndex(dragIndex, tok);
+        // also replace across saved sequences (so change persists)
+        // oldKey (before change) is not tracked here for simplicity; we'll just replace by matching index only
+        // (this keeps behavior intuitive: moved token instance becomes the server-suggested nearest token)
+      }
+      // redraw
+      drawStaticBuffer(currentTokens, chkDrawArrows.checked && chkFastMode.checked);
+      compositeFrame(currentTokens, dragIndex, null, false);
+      updateDetailsForIndex(dragIndex);
+    } else {
+      if (!dragging && currentTokens && currentTokens.length){
+        const idx = findNearestTokenIndex(mx, my, currentTokens, 14);
+        if (idx !== hoveredTokenIndex){ hoveredTokenIndex = idx; compositeFrame(currentTokens, selectedTokenIndex, null); }
+      }
+      // additionally, query server for token at cursor (for Details tab to show full vocalizer mapping)
+      // but throttle this to not spam server
+      const now = Date.now();
+      if (now - lastQueryAt > QUERY_MIN_MS){
+        lastQueryAt = now;
+        const norm = pixelToNorm(mx, my);
+        tokenAtNormalized(norm.x, norm.y).then(tok => {
+          if (tok && tabDetails.classList.contains('active')){
+            // show the nearest vocab token under cursor in details box
+            const px = { x: Math.round(mx), y: Math.round(my) };
+            detailsBox.textContent = `vocab token_id: ${tok.token_id}\nvocab text: ${tok.token_text}\nnormalized x,y: ${tok.x.toFixed(6)}, ${tok.y.toFixed(6)}\npixel x,y (cursor): ${px.x}, ${px.y}\ndistance: ${tok.distance.toFixed(6)}`;
+          }
+        }).catch(e => {});
+      }
+    }
+  });
+
+  window.addEventListener('mouseup', ()=> {
+    if (dragging){
+      log('Drag finished index', dragIndex);
+      // final snap: ask server for nearest token at final pos and replace across sequences
+      const tok = currentTokens[dragIndex];
+      if (tok){
+        // replace across sequences for original token key? We'll update sequences that contain the same index (best-effort)
+        const newToken = { token_id: tok.token_id, token_text: tok.token_text, x: tok.x, y: tok.y };
+        // Replace any matching instances across sequences where token_id/token_text match original - left as improvement
+      }
+      dragging=false; dragIndex=-1;
+      drawStaticBuffer(currentTokens, chkDrawArrows.checked && chkFastMode.checked);
+      compositeFrame(currentTokens, selectedTokenIndex, null);
+    }
+  });
+
+  canvas.addEventListener('mouseleave', ()=> { if (!dragging){ hoveredTokenIndex = -1; compositeFrame(currentTokens, selectedTokenIndex, null); } });
+
+  // tabs toggle
+  tabTokens.addEventListener('click', ()=> { tabTokens.classList.add('active'); tabDetails.classList.remove('active'); detailsBox.style.display='none'; });
+  tabDetails.addEventListener('click', ()=> { tabDetails.classList.add('active'); tabTokens.classList.remove('active'); detailsBox.style.display='block'; updateDetailsForIndex(selectedTokenIndex); });
+
+  // initial demo text
+  txt.value = `// Example text\nfunction hello(name){ return "Hello, " + name; }\n`;
+
+  // initial canvas blank
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,WIDTH,HEIGHT);
+  log('Ready. Use Tokenize & Save. Move mode queries full vocalizer on mouse move (server).');
+
+})();
+</script>
+</body>
+</html>
