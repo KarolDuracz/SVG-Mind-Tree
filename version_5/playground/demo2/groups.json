@@ -1,0 +1,131 @@
+{
+  "next_id": 8,
+  "groups": [
+    {
+      "id": 1,
+      "name": "Group",
+      "world_x": 979.0,
+      "world_y": 939.0,
+      "w": 1100,
+      "h": 700,
+      "members": [
+        {
+          "member_id": 1,
+          "prompt_key": "0586ba0b4dc816ed69dabcc98ef808c50132fe0334f314fc9377732e41c1cf41",
+          "local_x": 0.44986336923076925,
+          "local_y": 0.46670499615384614,
+          "centroid": {
+            "x": 0.44986336923076925,
+            "y": 0.46670499615384614
+          }
+        },
+        {
+          "member_id": 2,
+          "prompt_key": "49407948c68a83ae94d57cdb9cf0ebe6fe5ec2e15f2864b86b749315b834787c",
+          "local_x": 0.5166889105263158,
+          "local_y": 0.45185237368421055,
+          "centroid": {
+            "x": 0.5166889105263158,
+            "y": 0.45185237368421055
+          }
+        },
+        {
+          "member_id": 3,
+          "prompt_key": "49407948c68a83ae94d57cdb9cf0ebe6fe5ec2e15f2864b86b749315b834787c",
+          "local_x": 0.5166889105263158,
+          "local_y": 0.45185237368421055,
+          "centroid": {
+            "x": 0.5166889105263158,
+            "y": 0.45185237368421055
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Group",
+      "world_x": 1629.0,
+      "world_y": 299.0,
+      "w": 1100,
+      "h": 700,
+      "members": []
+    },
+    {
+      "id": 3,
+      "name": "Group5",
+      "world_x": 1993.0,
+      "world_y": 1143.0,
+      "w": 1100,
+      "h": 700,
+      "members": []
+    },
+    {
+      "id": 4,
+      "name": "Group5421",
+      "world_x": 1324.0,
+      "world_y": 385.0,
+      "w": 1100,
+      "h": 700,
+      "members": [
+        {
+          "member_id": 1,
+          "prompt_key": "3d83e8f9a6a1dc51d84309bfdda840640aaca6bb26ac360546d3e44a0229173c",
+          "local_x": 0.578853875,
+          "local_y": 0.407124375,
+          "centroid": {
+            "x": 0.578853875,
+            "y": 0.407124375
+          }
+        },
+        {
+          "member_id": 2,
+          "prompt_key": "3d83e8f9a6a1dc51d84309bfdda840640aaca6bb26ac360546d3e44a0229173c",
+          "local_x": 0.578853875,
+          "local_y": 0.407124375,
+          "centroid": {
+            "x": 0.578853875,
+            "y": 0.407124375
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Group1241221",
+      "world_x": 1372.0,
+      "world_y": 761.0,
+      "w": 1100,
+      "h": 700,
+      "members": []
+    },
+    {
+      "id": 6,
+      "name": "Group412412",
+      "world_x": 1068.0,
+      "world_y": 565.0,
+      "w": 1100,
+      "h": 700,
+      "members": []
+    },
+    {
+      "id": 7,
+      "name": "Group1",
+      "world_x": 2134.0,
+      "world_y": 244.0,
+      "w": 1100,
+      "h": 700,
+      "members": [
+        {
+          "member_id": 1,
+          "prompt_key": "fa6bbc8700cede7170a5f940b04b6f4df8b521626de7af8ff0ce5d8a1492bc6a",
+          "local_x": 0.4465248272727273,
+          "local_y": 0.48136880909090907,
+          "centroid": {
+            "x": 0.4465248272727273,
+            "y": 0.48136880909090907
+          }
+        }
+      ]
+    }
+  ]
+}

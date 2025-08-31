@@ -1,0 +1,1060 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Token Vector Animator — Realtime + Graph (fixed)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    :root { --left-w:340px; --right-w:360px; --accent:#87CEEB; }
+    html,body { height:100%; margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial; }
+    body { display:flex; height:100vh; }
+    #sidebar {
+      flex: 0 0 var(--left-w);
+      width: var(--left-w);
+      min-width: var(--left-w);
+      border-right:1px solid #eee;
+      padding:12px;
+      box-sizing:border-box;
+      overflow:auto;
+    }
+    #main { flex:1; display:flex; flex-direction:column; }
+    #topbar { height:48px; display:flex; align-items:center; gap:8px; padding:8px; border-bottom:1px solid #eee; background:#fff; }
+    .tabbtn { padding:6px 10px; cursor:pointer; border-radius:6px; border:1px solid transparent; background:transparent; }
+    .tabbtn.active { background:#f5f5f5; border-color:#ddd; }
+    #canvasArea { display:flex; gap:12px; flex:1; }
+    #center { flex:1; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; padding:12px; box-sizing:border-box; position:relative; }
+    #rightpanel { width:var(--right-w); border-left:1px solid #eee; padding:12px; box-sizing:border-box; overflow:auto; }
+    textarea { width:100%; height:160px; box-sizing:border-box; font-family:monospace; font-size:13px; white-space:pre; }
+    button { padding:8px 10px; font-size:13px; cursor:pointer; }
+    #controls { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+    canvas { background:white; border:1px solid #ddd; box-shadow:0 2px 6px rgba(0,0,0,0.03); display:block; }
+    #mainCanvas { width:1100px; height:700px; }
+    #worldCanvas, #graphCanvas { background:#fbfbfb; width:100%; height:calc(100vh - 200px); cursor:grab; display:block; }
+    .small { font-size:12px; color:#444; }
+    select { width:100%; }
+    #log { margin-top:8px; font-family:monospace; font-size:12px; height:160px; overflow:auto; background:#fafafa; border:1px solid #eee; padding:8px; white-space:pre-wrap; }
+    #groupList { margin-top:8px; max-height:200px; overflow:auto; border:1px solid #eee; padding:6px; }
+    .groupRow { padding:6px; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    #details { font-family:monospace; font-size:13px; white-space:pre-wrap; margin-top:8px; }
+    #realtimeInfo { font-family:monospace; font-size:12px; background:#fff; border:1px solid #eee; padding:8px; margin-top:8px; height:160px; overflow:auto; }
+    .btn-ghost { background:transparent; border:1px solid #ddd; padding:6px 8px; border-radius:6px; cursor:pointer; }
+    #zoomControls { margin-left:8px; display:flex; gap:6px; }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <h3>Token Animator</h3>
+    <label>Enter text / code</label>
+    <textarea id="txt" placeholder="Type here..."></textarea>
+
+    <div id="controls">
+      <button id="btnTokenize">Tokenize & Save</button>
+      <button id="btnPlay">Play</button>
+      <button id="btnStop">Stop</button>
+      <button id="btnClear">Clear Saved</button>
+    </div>
+
+    <div style="margin-top:8px;">
+      <label>Mode:</label>
+      <select id="modeSelect" style="width:100%;">
+        <option value="manual">Manual</option>
+        <option value="realtime">Realtime (Ctrl+Enter: append chunk)</option>
+      </select>
+    </div>
+
+    <div style="margin-top:8px;">
+      <label>Saved prompts</label>
+      <select id="promptList" size="6"></select>
+    </div>
+
+    <div style="margin-top:8px;">
+      <button id="btnCreateGroup">Create Group</button>
+      <label style="display:block; margin-top:6px;">Groups</label>
+      <div id="groupList"></div>
+    </div>
+
+    <div style="margin-top:8px;">
+      <strong>Realtime token log</strong>
+      <div id="realtimeInfo">No realtime tokens yet.</div>
+      <div style="margin-top:6px; display:flex; gap:8px;">
+        <button id="btnRealtimeReset" class="btn-ghost">Reset realtime log</button>
+        <button id="btnGraphPlay" class="btn-ghost">Play Graph</button>
+      </div>
+    </div>
+
+    <div style="margin-top:8px;">
+      <strong>Sequence Builder</strong>
+      <div style="margin-top:6px;">
+        <button id="btnSeqAdd">Add Selected Group</button>
+        <button id="btnSeqClear">Clear Sequence</button>
+        <button id="btnSeqPlay">Play Sequence</button>
+      </div>
+      <div id="seqList" class="small" style="margin-top:6px;">[empty]</div>
+    </div>
+
+    <div style="margin-top:8px;">
+      <label>Log</label>
+      <div id="log">Ready.</div>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <button class="tabbtn active" id="tabCanvas">Canvas</button>
+      <button class="tabbtn" id="tabWorld">World</button>
+      <button class="tabbtn" id="tabGraph">Graph</button>
+      <button class="tabbtn" id="tabRealtime">Realtime</button>
+
+      <div id="zoomControls" style="margin-left:auto;">
+        <button id="zoomIn">Zoom +</button>
+        <button id="zoomOut">Zoom −</button>
+        <button id="resetDefaults">Reset Defaults</button>
+      </div>
+      <div style="margin-left:8px;" class="small">Tokens: <span id="tokenCount">0</span></div>
+    </div>
+
+    <div id="canvasArea">
+      <div id="center">
+        <div id="canvasContainer">
+          <canvas id="mainCanvas" width="1100" height="700"></canvas>
+        </div>
+
+        <div style="margin-top:8px;">
+          <div id="details">Details panel: click token / hover / world preview</div>
+        </div>
+      </div>
+
+      <div id="rightpanel">
+        <h4>Generated text</h4>
+        <div id="generatedText" style="height:200px; overflow:auto; border:1px solid #eee; padding:8px; font-family:monospace;"></div>
+        <div style="margin-top:12px;">
+          <button id="btnAddToGroup">Add selected prompt to group</button>
+        </div>
+        <div style="margin-top:12px;">
+          <label>Selected group</label>
+          <select id="selGroup"></select>
+          <div style="margin-top:8px;">
+            <button id="btnPlayGroup">Play Group</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label>World controls</label>
+          <div id="worldControls" style="display:flex; gap:8px;">
+            <button id="btnPanMode">Pan</button>
+            <button id="btnSelectMode">Select</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(async function(){
+  /* ---------- DOM ---------- */
+  const txt = document.getElementById('txt');
+  const btnTokenize = document.getElementById('btnTokenize');
+  const btnPlay = document.getElementById('btnPlay');
+  const btnStop = document.getElementById('btnStop');
+  const btnClear = document.getElementById('btnClear');
+  const promptList = document.getElementById('promptList');
+  const tokenCount = document.getElementById('tokenCount');
+  const logEl = document.getElementById('log');
+  const generatedText = document.getElementById('generatedText');
+  const details = document.getElementById('details');
+  const selGroup = document.getElementById('selGroup');
+  const btnCreateGroup = document.getElementById('btnCreateGroup');
+  const groupListDiv = document.getElementById('groupList');
+  const btnAddToGroup = document.getElementById('btnAddToGroup');
+  const tabCanvas = document.getElementById('tabCanvas');
+  const tabWorld = document.getElementById('tabWorld');
+  const tabGraph = document.getElementById('tabGraph');
+  const tabRealtime = document.getElementById('tabRealtime');
+  const canvasContainer = document.getElementById('canvasContainer');
+  const modeSelect = document.getElementById('modeSelect');
+  const btnRealtimeReset = document.getElementById('btnRealtimeReset');
+  const realtimeInfo = document.getElementById('realtimeInfo');
+  const btnGraphPlay = document.getElementById('btnGraphPlay');
+  const btnSeqAdd = document.getElementById('btnSeqAdd');
+  const btnSeqClear = document.getElementById('btnSeqClear');
+  const btnSeqPlay = document.getElementById('btnSeqPlay');
+  const seqList = document.getElementById('seqList');
+  const btnPlayGroup = document.getElementById('btnPlayGroup');
+  const zoomIn = document.getElementById('zoomIn');
+  const zoomOut = document.getElementById('zoomOut');
+  const resetDefaults = document.getElementById('resetDefaults');
+
+  const mainCanvas = document.getElementById('mainCanvas');
+  const mainCtx = mainCanvas.getContext('2d');
+
+  /* ---------- client state ---------- */
+  const sequences = new Map(); // prompt_key -> { text, tokens, centroid }
+  let currentSeqKey = null;
+  let playing = false;
+  let stopRequested = false;
+
+  // World & groups
+  let worldCanvas = null, worldCtx = null;
+  let groups = [];                     // server-provided groups array
+  let groupMembers = new Map();        // gid -> [members]
+  let worldView = { offsetX:0, offsetY:0, scale:0.15 };
+  const worldState = { dragging:false, lastX:0, lastY:0, panMode:false, memberDragging:false, memberDrag:null, memberOffsetX:0, memberOffsetY:0, lastTokenAtQuery:0, groupDragging:false, groupDrag:null };
+
+  // Graph canvas for token-position graph
+  let graphCanvas = null, graphCtx = null;
+  let graphView = { offsetX:0, offsetY:0, scale:1.0 };
+  let graphHighlightIndex = -1; // index of currently highlighted token for animation
+
+  // Realtime chunking state
+  let realtimeTokens = [];   // flattened array of token objects {token_id, token_text, x, y}
+  let realtimeLastSentPos = 0; // number of characters already sent to /tokenize
+  let realtimeTextSnapshot = ""; // last text that was used for append-only chunking
+
+  // Sequence builder
+  const seqGroups = [];
+
+  // zoom for main canvas
+  let mainZoom = 1.0;
+
+  /* ---------- helpers ---------- */
+  function log(...args){
+    const s = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+    console.log(s);
+    logEl.textContent += '\n' + s;
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  async function postJSON(url, body){ const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}); if (!r.ok) { const t = await r.text().catch(()=>r.statusText); throw new Error(`${url} ${r.status}: ${t}`); } return r.json(); }
+  async function getJSON(url){ const r = await fetch(url); if (!r.ok) { const t = await r.text().catch(()=>r.statusText); throw new Error(`${url} ${r.status}: ${t}`); } return r.json(); }
+  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+  /* ---------- TAB insertion in textarea ---------- */
+  txt.addEventListener('keydown', (e)=>{
+    if (e.key === 'Tab'){
+      e.preventDefault();
+      const el = txt;
+      const start = el.selectionStart, end = el.selectionEnd;
+      const value = el.value;
+      el.value = value.slice(0,start) + '\t' + value.slice(end);
+      el.selectionStart = el.selectionEnd = start + 1;
+      // reflect change in realtimeTextSnapshot if in realtime mode and append-only
+      if (modeSelect.value === 'realtime' && realtimeLastSentPos === value.length){
+        realtimeTextSnapshot = el.value;
+      }
+    }
+  });
+
+  /* ---------- tokenization (manual) ---------- */
+  btnTokenize.addEventListener('click', async ()=>{
+    const text = txt.value || '';
+    if (!text.trim()){ alert('Enter text'); return; }
+    try{
+      log('Tokenizing...');
+      const res = await postJSON('/tokenize', { text });
+      sequences.set(res.prompt_key, { text, tokens: res.tokens, centroid: res.centroid });
+      if (![...promptList.options].some(o => o.value === res.prompt_key)){
+        const opt = document.createElement('option'); opt.value = res.prompt_key; opt.textContent = res.text ? res.text.slice(0,60) + (res.text.length>60?'…':'') : res.prompt_key; promptList.appendChild(opt);
+      }
+      promptList.value = res.prompt_key;
+      currentSeqKey = res.prompt_key;
+      tokenCount.textContent = res.count;
+      log('Saved prompt', res.prompt_key, 'tokens=', res.count);
+      drawMainForKey(res.prompt_key);
+      await refreshGroupsAndMembers();
+    }catch(err){
+      log('Tokenize error', err.message || err);
+    }
+  });
+
+  /* ---------- draw main canvas (respects mainZoom) ---------- */
+  function drawMainForKey(key){
+    const seq = sequences.get(key);
+    mainCtx.clearRect(0,0,mainCanvas.width, mainCanvas.height);
+    if (!seq || !seq.tokens || seq.tokens.length === 0) return;
+    drawTokensOnContext(mainCtx, seq.tokens, mainCanvas.width, mainCanvas.height, mainZoom);
+  }
+
+  function drawTokensOnContext(ctx, tokens, w, h, zoom=1.0){
+    let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+    tokens.forEach(t=>{ minX=Math.min(minX,t.x); maxX=Math.max(maxX,t.x); minY=Math.min(minY,t.y); maxY=Math.max(maxY,t.y); });
+    if (!isFinite(minX)){ minX=0; maxX=1; minY=0; maxY=1; }
+    const worldW = (maxX-minX)||1, worldH=(maxY-minY)||1;
+    let scale = Math.min((w - 80)/worldW, (h - 80)/worldH);
+    scale *= zoom;
+    const tx = w/2 - ((minX + maxX)/2) * scale;
+    const ty = h/2 - ((minY + maxY)/2) * scale;
+    function worldToCanvas(x,y){ return { x: x*scale + tx, y: y*scale + ty }; }
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+    tokens.forEach(t=>{
+      const p = worldToCanvas(t.x,t.y);
+      ctx.beginPath(); ctx.fillStyle = 'var(--accent)'; ctx.arc(p.x,p.y,8,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#000'; ctx.font='11px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      const short = (t.token_text||'').replace(/\s+/g,' '); const label = short && short.length<=6 ? short : (short.length>6?short.slice(0,6)+'…':String(t.token_id));
+      ctx.fillText(label, p.x, p.y);
+    });
+  }
+
+  /* ---------- playback (single prompt tokens) ---------- */
+  async function playTokens(tokens){
+    if (!tokens || tokens.length === 0) return;
+    playing = true; stopRequested=false; generatedText.textContent='';
+    // compute transform for tokens (use token x,y normalized in 0..1)
+    let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+    tokens.forEach(t=>{ minX=Math.min(minX,t.x); maxX=Math.max(maxX,t.x); minY=Math.min(minY,t.y); maxY=Math.max(maxY,t.y); });
+    if (!isFinite(minX)){ minX=0; maxX=1; minY=0; maxY=1; }
+    const worldW = (maxX-minX)||1, worldH=(maxY-minY)||1;
+    let scale = Math.min((mainCanvas.width - 80)/worldW, (mainCanvas.height - 80)/worldH);
+    scale *= mainZoom;
+    const tx = mainCanvas.width/2 - ((minX + maxX)/2) * scale;
+    const ty = mainCanvas.height/2 - ((minY + maxY)/2) * scale;
+    function w2c(x,y){ return {x:x*scale+tx, y:y*scale+ty}; }
+
+    const drawFrame = (highlightPos) => {
+      mainCtx.clearRect(0,0,mainCanvas.width, mainCanvas.height);
+      drawTokensOnContext(mainCtx, tokens, mainCanvas.width, mainCanvas.height, mainZoom);
+      if (highlightPos){
+        mainCtx.beginPath(); mainCtx.fillStyle='#FFD700'; mainCtx.arc(highlightPos.x, highlightPos.y, 9, 0, Math.PI*2); mainCtx.fill();
+      }
+    };
+
+    if (tokens.length <= 1){
+      if (tokens[0] && tokens[0].token_text) generatedText.textContent += tokens[0].token_text;
+      drawFrame(null);
+      playing=false; return;
+    }
+
+    for (let i=0;i<tokens.length-1;i++){
+      if (stopRequested) break;
+      const a = tokens[i], b = tokens[i+1];
+      if (a.token_text) generatedText.textContent += a.token_text;
+      const aPx = w2c(a.x,a.y), bPx = w2c(b.x,b.y);
+      const dist = Math.hypot(bPx.x-aPx.x, bPx.y-aPx.y);
+      const base=420; const dur = Math.min(900, Math.max(120, Math.round(base*(dist/250))));
+      const start = performance.now();
+      await new Promise(resolve=>{
+        function step(now){
+          if (stopRequested) { resolve(); return; }
+          const t = Math.min(1, (now-start)/dur);
+          const cx = aPx.x + (bPx.x-aPx.x)*t, cy = aPx.y + (bPx.y-aPx.y)*t;
+          drawFrame({x:cx,y:cy});
+          if (t < 1) requestAnimationFrame(step); else resolve();
+        }
+        requestAnimationFrame(step);
+      });
+    }
+    const last = tokens[tokens.length-1];
+    if (last && last.token_text) generatedText.textContent += last.token_text;
+
+    playing=false; stopRequested=false; log('Playback finished');
+  }
+
+  btnPlay.addEventListener('click', async ()=>{
+    if (!currentSeqKey){ alert('Select saved prompt'); return; }
+    const seq = sequences.get(currentSeqKey);
+    if (!seq) return;
+    await playTokens(seq.tokens);
+  });
+  btnStop.addEventListener('click', ()=>{ stopRequested=true; playing=false; });
+
+  btnClear.addEventListener('click', ()=>{ sequences.clear(); promptList.innerHTML=''; currentSeqKey=null; tokenCount.textContent='0'; generatedText.textContent=''; mainCtx.clearRect(0,0,mainCanvas.width, mainCanvas.height); log('Cleared sequences'); });
+
+  promptList.addEventListener('change', ()=>{ const k = promptList.value; currentSeqKey = k; if (k) { const s = sequences.get(k); tokenCount.textContent = s ? s.tokens.length : '0'; drawMainForKey(k); } });
+
+  /* ---------- groups & world (copied/improved) ---------- */
+  function ensureWorldCanvas(){
+    if (worldCanvas) return;
+    worldCanvas = document.createElement('canvas');
+    worldCanvas.id = 'worldCanvas';
+    worldCanvas.width = 2000; worldCanvas.height = 1200;
+    worldCanvas.style.width = '100%'; worldCanvas.style.height = 'auto';
+    // don't touch canvasContainer here; caller will place it
+    worldCtx = worldCanvas.getContext('2d');
+    worldCanvas.addEventListener('mousedown', worldMouseDown);
+    window.addEventListener('mouseup', worldMouseUp);
+    worldCanvas.addEventListener('mousemove', worldMouseMove);
+    worldCanvas.addEventListener('wheel', worldWheel, { passive: false });
+    worldCanvas.style.cursor = 'grab';
+  }
+
+  async function refreshGroupsAndMembers(){
+    try{
+      const gdata = await getJSON('/groups');
+      groups = gdata.groups || [];
+      selGroup.innerHTML = ''; groupListDiv.innerHTML = '';
+      for (const g of groups){
+        const opt = document.createElement('option'); opt.value = String(g.id); opt.textContent = `${g.name} (#${g.id})`; selGroup.appendChild(opt);
+        const row = document.createElement('div'); row.className = 'groupRow';
+        row.innerHTML = `<div><strong>${g.name}</strong><div class="small">id:${g.id} x:${Math.round(g.world_x)} y:${Math.round(g.world_y)}</div></div>
+          <div>
+            <button data-id="${g.id}" class="btnView">View</button>
+            <button data-id="${g.id}" class="btnPlayGroup">Play</button>
+            <button data-id="${g.id}" class="btnAddSeq">Add→Seq</button>
+          </div>`;
+        groupListDiv.appendChild(row);
+      }
+      [...groupListDiv.querySelectorAll('.btnView')].forEach(btn => btn.addEventListener('click', ()=> focusGroupOnWorld(Number(btn.getAttribute('data-id')))));
+      [...groupListDiv.querySelectorAll('.btnPlayGroup')].forEach(btn => btn.addEventListener('click', async ()=>{ const gid = Number(btn.getAttribute('data-id')); await playGroupById(gid); }));
+      [...groupListDiv.querySelectorAll('.btnAddSeq')].forEach(btn => btn.addEventListener('click', ()=>{ const gid = Number(btn.getAttribute('data-id')); addGroupToSequence(gid); }));
+
+      const memberPromises = groups.map(g => fetch(`/groups/${g.id}/members`).then(r => r.ok ? r.json() : []).catch(()=>[]));
+      const membersArray = await Promise.all(memberPromises);
+      groupMembers.clear();
+      for (let i=0;i<groups.length;i++){
+        groupMembers.set(groups[i].id, membersArray[i] || []);
+      }
+      log('Groups refreshed:', groups.length, 'members cached');
+      if (isTabActive(tabWorld)) drawWorld();
+    }catch(err){
+      log('refreshGroups error', err.message || err);
+    }
+  }
+
+  btnCreateGroup.addEventListener('click', async ()=>{
+    const name = prompt('Group name', 'Group');
+    if (!name) return;
+    try{
+      const wx = Math.round(Math.random() * 2000 + 200);
+      const wy = Math.round(Math.random() * 1000 + 200);
+      const g = await postJSON('/groups', { name, world_x: wx, world_y: wy });
+      log('Created group', g.id);
+      await refreshGroupsAndMembers();
+    }catch(err){ log('create group error', err.message || err); }
+  });
+
+  btnAddToGroup.addEventListener('click', async ()=>{
+    const key = promptList.value;
+    const gid = Number(selGroup.value);
+    if (!key){ alert('Select a prompt'); return; }
+    if (!gid){ alert('Select a group'); return; }
+    const seq = sequences.get(key);
+    if (!seq){ alert('Sequence not found'); return; }
+    try{
+      const res = await postJSON(`/groups/${gid}/add`, { prompt_key: key, centroid: seq.centroid });
+      log('Added to group', res);
+      await refreshGroupsAndMembers();
+      if (isTabActive(tabWorld)) drawWorld();
+    }catch(err){ log('addToGroup error', err.message || err); }
+  });
+
+  async function playGroupById(gid){
+    const members = groupMembers.get(gid) || [];
+    if (members.length === 0){ alert('Group has no members'); return; }
+    const allTokens = [];
+    for (const m of members){
+      const pk = m.prompt_key;
+      const seq = sequences.get(pk);
+      if (!seq){
+        alert('Missing tokenized prompt for some group members. Tokenize those prompts first.');
+        return;
+      }
+      for (const t of seq.tokens) allTokens.push(Object.assign({}, t));
+    }
+    await playTokens(allTokens);
+  }
+
+  // Sequence builder
+  function addGroupToSequence(gid){ seqGroups.push(gid); renderSeqList(); }
+  function clearSequence(){ seqGroups.length = 0; renderSeqList(); }
+  function renderSeqList(){ seqList.textContent = seqGroups.length ? seqGroups.map((g,i)=>`${i+1}: #${g}`).join(' → ') : '[empty]'; }
+  btnSeqAdd.addEventListener('click', ()=>{ const g = Number(selGroup.value); if (!g) { alert('Select a group'); return; } addGroupToSequence(g); });
+  btnSeqClear.addEventListener('click', ()=>{ clearSequence(); });
+  btnSeqPlay.addEventListener('click', async ()=>{
+    if (seqGroups.length === 0){ alert('Sequence empty'); return; }
+    const allTokens = [];
+    for (const gid of seqGroups){
+      const members = groupMembers.get(gid) || [];
+      for (const m of members){
+        const seq = sequences.get(m.prompt_key);
+        if (!seq){ alert(`Missing tokenized prompt ${m.prompt_key}. Tokenize it before playing.`); return; }
+        for (const t of seq.tokens) allTokens.push(Object.assign({}, t));
+      }
+    }
+    await playTokens(allTokens);
+  });
+
+  /* ---------- world drawing ---------- */
+  function drawWorld(){
+    if (!worldCtx) return;
+    worldCtx.clearRect(0,0,worldCanvas.width, worldCanvas.height);
+    worldCtx.fillStyle = '#fff'; worldCtx.fillRect(0,0,worldCanvas.width, worldCanvas.height);
+    for (const g of groups){
+      const top = worldToScreen(g.world_x, g.world_y);
+      const gw = g.w * worldView.scale;
+      const gh = g.h * worldView.scale;
+      worldCtx.fillStyle = '#f8f8ff';
+      worldCtx.fillRect(top.x, top.y, gw, gh);
+      worldCtx.strokeStyle = '#ccc'; worldCtx.strokeRect(top.x, top.y, gw, gh);
+      worldCtx.fillStyle = '#000'; worldCtx.font = '14px sans-serif';
+      worldCtx.fillText(`${g.name} (#${g.id})`, top.x + 8, top.y + 18);
+      const members = groupMembers.get(g.id) || [];
+      for (const m of members){
+        const px = top.x + m.local_x * gw;
+        const py = top.y + m.local_y * gh;
+        worldCtx.beginPath(); worldCtx.fillStyle = 'var(--accent)'; worldCtx.arc(px, py, 6, 0, Math.PI*2); worldCtx.fill();
+        worldCtx.fillStyle = '#000'; worldCtx.font = '10px monospace'; worldCtx.textAlign = 'center'; worldCtx.fillText(String(m.member_id), px, py - 10);
+      }
+    }
+  }
+
+  function worldToScreen(wx, wy){ return { x: (wx + worldView.offsetX) * worldView.scale, y: (wy + worldView.offsetY) * worldView.scale }; }
+  function screenToWorld(sx, sy){ return { x: sx / worldView.scale - worldView.offsetX, y: sy / worldView.scale - worldView.offsetY }; }
+
+  function focusGroupOnWorld(gid){
+    const g = groups.find(x=>x.id===gid); if (!g) return;
+    worldView.offsetX = -g.world_x + (worldCanvas.width / worldView.scale) / 4;
+    worldView.offsetY = -g.world_y + (worldCanvas.height / worldView.scale) / 4;
+    drawWorld();
+  }
+
+/*
+  function worldMouseDown(ev){
+    const rect = worldCanvas.getBoundingClientRect();
+    const sx = ev.clientX - rect.left, sy = ev.clientY - rect.top;
+    if (ev.button === 1 || ev.button === 2 || worldState.panMode){
+      worldState.dragging = true; worldState.lastX = sx; worldState.lastY = sy; worldCanvas.style.cursor='grabbing'; return;
+    }
+    for (const g of groups){
+      const top = worldToScreen(g.world_x, g.world_y); const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+      if (sx >= top.x && sx <= top.x + gw && sy >= top.y && sy <= top.y + gh){
+        const members = groupMembers.get(g.id) || [];
+        let best=null; let bd=Infinity;
+        for (const m of members){
+          const px = top.x + m.local_x * gw, py = top.y + m.local_y * gh;
+          const d2 = (px - sx)*(px - sx) + (py - sy)*(py - sy);
+          if (d2 < bd){ bd=d2; best=m; }
+        }
+        if (best && bd <= 20*20){
+          worldState.memberDragging = true;
+          worldState.memberDrag = { gid: g.id, member: best };
+          worldState.memberOffsetX = sx - (top.x + best.local_x * gw);
+          worldState.memberOffsetY = sy - (top.y + best.local_y * gh);
+          log('Start dragging member', best.member_id, 'group', g.id);
+          return;
+        }
+        worldState.groupDragging = true;
+        worldState.groupDrag = {
+          gid: g.id,
+          startSx: sx, startSy: sy,
+          startWx: g.world_x, startWy: g.world_y
+        };
+        worldCanvas.style.cursor='grabbing';
+        log('Start dragging group', g.id);
+        return;
+      }
+    }
+  }
+  */
+  
+  function worldMouseDown(ev){
+  const rect = worldCanvas.getBoundingClientRect();
+  const sx = ev.clientX - rect.left, sy = ev.clientY - rect.top;
+
+  // If primary button and NOT in panMode, prefer member/group interactions first
+  if (ev.button === 0 && !worldState.panMode){
+    for (const g of groups){
+      const top = worldToScreen(g.world_x, g.world_y);
+      const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+      if (sx >= top.x && sx <= top.x + gw && sy >= top.y && sy <= top.y + gh){
+        // Hit inside this group's box — check for member hit first
+        const members = groupMembers.get(g.id) || [];
+        let best = null; let bd = Infinity;
+        for (const m of members){
+          const px = top.x + m.local_x * gw, py = top.y + m.local_y * gh;
+          const d2 = (px - sx)*(px - sx) + (py - sy)*(py - sy);
+          if (d2 < bd){ bd = d2; best = m; }
+        }
+        if (best && bd <= 20*20){
+          // Begin dragging a member (existing behavior)
+          worldState.memberDragging = true;
+          worldState.memberDrag = { gid: g.id, member: best };
+          worldState.memberOffsetX = sx - (top.x + best.local_x * gw);
+          worldState.memberOffsetY = sy - (top.y + best.local_y * gh);
+          log('Start dragging member', best.member_id, 'group', g.id);
+          return;
+        }
+
+        // No member hit: start dragging this group (move only this group's rect)
+        worldState.groupDragging = true;
+        worldState.groupDrag = {
+          gid: g.id,
+          startSx: sx, startSy: sy,
+          startWx: g.world_x, startWy: g.world_y
+        };
+        worldCanvas.style.cursor = 'grabbing';
+        log('Start dragging group', g.id);
+        return;
+      }
+    }
+  }
+
+  // Fallback: start panning when middle/right button or panMode is active
+  if (ev.button === 1 || ev.button === 2 || worldState.panMode){
+    worldState.dragging = true; worldState.lastX = sx; worldState.lastY = sy; worldCanvas.style.cursor = 'grabbing';
+    return;
+  }
+}
+
+
+  function worldMouseUp(ev){
+    const rect = worldCanvas.getBoundingClientRect();
+    const sx = ev.clientX - rect.left, sy = ev.clientY - rect.top;
+    if (worldState.dragging){
+      worldState.dragging=false; worldCanvas.style.cursor='grab'; return;
+    }
+    if (worldState.memberDragging && worldState.memberDrag){
+      const { gid, member } = worldState.memberDrag;
+      const g = groups.find(x=>x.id===gid);
+      if (!g) { worldState.memberDragging=false; worldState.memberDrag=null; return; }
+      const top = worldToScreen(g.world_x, g.world_y);
+      const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+      const localX = Math.max(0, Math.min(1, (sx - top.x - worldState.memberOffsetX) / gw));
+      const localY = Math.max(0, Math.min(1, (sy - top.y - worldState.memberOffsetY) / gh));
+      postJSON(`/groups/${gid}/move`, { member_id: member.member_id, local_x: localX, local_y: localY })
+        .then(res => { log('Moved persisted', res); return refreshGroupsAndMembers(); })
+        .then(()=> { if (isTabActive(tabWorld)) drawWorld(); })
+        .catch(err => log('move persist error', err.message || err));
+    }
+    if (worldState.groupDragging && worldState.groupDrag){
+      const { gid } = worldState.groupDrag;
+      const g = groups.find(x=>x.id===gid);
+      if (g){
+        postJSON(`/groups/${gid}/update_location`, { world_x: g.world_x, world_y: g.world_y })
+          .then(res => { log('Group location persisted', res); return refreshGroupsAndMembers(); })
+          .then(()=> { if (isTabActive(tabWorld)) drawWorld(); })
+          .catch(err => log('persist group location error', err.message || err));
+      }
+    }
+    worldState.memberDragging=false; worldState.memberDrag=null;
+    worldState.groupDragging=false; worldState.groupDrag=null;
+  }
+
+  async function worldMouseMove(ev){
+    const rect = worldCanvas.getBoundingClientRect();
+    const sx = ev.clientX - rect.left, sy = ev.clientY - rect.top;
+    if (worldState.dragging){
+      const dx = (sx - worldState.lastX) / worldView.scale;
+      const dy = (sy - worldState.lastY) / worldView.scale;
+      worldView.offsetX += dx; worldView.offsetY += dy;
+      worldState.lastX = sx; worldState.lastY = sy;
+      await drawWorld(); return;
+    }
+    if (worldState.memberDragging && worldState.memberDrag){
+      const g = groups.find(x=>x.id===worldState.memberDrag.gid);
+      if (!g) return;
+      const top = worldToScreen(g.world_x, g.world_y); const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+      const px = sx - worldState.memberOffsetX, py = sy - worldState.memberOffsetY;
+      await drawWorld();
+      worldCtx.beginPath(); worldCtx.fillStyle='#FFD700'; worldCtx.arc(px, py, 8, 0, Math.PI*2); worldCtx.fill();
+      const now = Date.now();
+      if (now - worldState.lastTokenAtQuery > 50){
+        worldState.lastTokenAtQuery = now;
+        const normX = Math.max(0, Math.min(1, (px - top.x) / gw));
+        const normY = Math.max(0, Math.min(1, (py - top.y) / gh));
+        try {
+          const tok = await postJSON('/token_at', { x: normX, y: normY });
+          details.textContent = `Nearest vocab token@pos: id:${tok.token_id}\ntext:${tok.token_text}\nnorm:${tok.x.toFixed(6)},${tok.y.toFixed(6)}\ndist:${tok.distance.toFixed(6)}`;
+        }catch(e){ /* ignore transient */ }
+      }
+      return;
+    }
+    if (worldState.groupDragging && worldState.groupDrag){
+      const gd = worldState.groupDrag;
+      const dx = sx - gd.startSx; const dy = sy - gd.startSy;
+      const dx_world = dx / worldView.scale; const dy_world = dy / worldView.scale;
+      const g = groups.find(x=>x.id===gd.gid);
+      if (!g) return;
+      g.world_x = gd.startWx + dx_world;
+      g.world_y = gd.startWy + dy_world;
+      await drawWorld();
+      const top = worldToScreen(g.world_x, g.world_y); const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+      worldCtx.strokeStyle = '#FA8072'; worldCtx.lineWidth = 2; worldCtx.strokeRect(top.x, top.y, gw, gh);
+      return;
+    }
+    let found = false;
+    for (const g of groups){
+      const top = worldToScreen(g.world_x, g.world_y); const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+      if (sx >= top.x && sx <= top.x + gw && sy >= top.y && sy <= top.y + gh){
+        const members = groupMembers.get(g.id) || [];
+        for (const m of members){
+          const px = top.x + m.local_x * gw, py = top.y + m.local_y * gh;
+          const d2 = (px - sx)*(px - sx) + (py - sy)*(py - sy);
+          if (d2 <= 12*12){
+            details.textContent = `Group ${g.name} member ${m.member_id}\nprompt_key: ${m.prompt_key}\nlocal: ${m.local_x.toFixed(3)}, ${m.local_y.toFixed(3)}`;
+            found = true; break;
+          }
+        }
+      }
+      if (found) break;
+    }
+    if (!found && !worldState.memberDragging) details.textContent='World: hover a member to see info, click group box to move group';
+  }
+
+  function worldWheel(ev){ ev.preventDefault(); const delta = Math.sign(ev.deltaY); if (delta>0) setWorldScale(worldView.scale/1.12); else setWorldScale(worldView.scale*1.12); }
+  function setWorldScale(s){ worldView.scale = Math.max(0.02, Math.min(1.5, s)); if (isTabActive(tabWorld)) drawWorld(); }
+
+  /* ---------- Graph canvas and rendering (incremental) ---------- */
+  /*
+  function ensureGraphCanvas(){
+    if (graphCanvas) return;
+    graphCanvas = document.createElement('canvas');
+    graphCanvas.id = 'graphCanvas';
+    graphCanvas.width = 2000; graphCanvas.height = 1200;
+    graphCanvas.style.width = '100%'; graphCanvas.style.height = 'auto';
+    graphCtx = graphCanvas.getContext('2d');
+
+    // wheel zoom (centered)
+    graphCanvas.addEventListener('wheel', (e)=>{ e.preventDefault(); const d = Math.sign(e.deltaY); if (d>0) graphView.scale /= 1.12; else graphView.scale *= 1.12; renderGraph(); }, { passive:false });
+
+    // simple pan with middle button or panMode on world
+    let panning = false, px0=0, py0=0;
+    graphCanvas.addEventListener('mousedown', (e)=>{ if (e.button === 1 || e.button === 0 && e.shiftKey){ panning = true; px0 = e.clientX; py0 = e.clientY; graphCanvas.style.cursor='grabbing'; }});
+    window.addEventListener('mouseup', ()=>{ if (panning){ panning=false; graphCanvas.style.cursor='grab'; }});
+    graphCanvas.addEventListener('mousemove', (e)=>{ if (!panning) return; const dx = e.clientX - px0, dy = e.clientY - py0; px0 = e.clientX; py0 = e.clientY; graphView.offsetX += dx; graphView.offsetY += dy; renderGraph(); });
+
+  }
+  */
+  
+  // helper
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+/* ---------- Graph canvas and rendering (incremental) - updated with pointer panning & focal zoom ---------- */
+function ensureGraphCanvas(){
+  if (graphCanvas) return;
+  graphCanvas = document.createElement('canvas');
+  graphCanvas.id = 'graphCanvas';
+  graphCanvas.width = 2000;
+  graphCanvas.height = 1200;
+  graphCanvas.style.width = '100%';
+  graphCanvas.style.height = 'auto';
+  graphCtx = graphCanvas.getContext('2d');
+
+  // make sure touch/pointer gestures don't trigger the browser pan/zoom
+  graphCanvas.style.touchAction = 'none';
+  graphCanvas.style.cursor = 'grab';
+
+  // Wheel zoom centered at mouse pointer (keeps the point under cursor fixed)
+  graphCanvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const rect = graphCanvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    // compute world (canvas) coords for the pointer BEFORE zoom
+    const wx = (mx - graphView.offsetX) / graphView.scale;
+    const wy = (my - graphView.offsetY) / graphView.scale;
+
+    const delta = -Math.sign(e.deltaY);
+    const factor = Math.pow(1.12, delta); // zoom factor per wheel tick
+    graphView.scale = clamp(graphView.scale * factor, 0.05, 6.0);
+
+    // compute new offset so that (wx,wy) stays under the pointer (mx,my)
+    graphView.offsetX = mx - wx * graphView.scale;
+    graphView.offsetY = my - wy * graphView.scale;
+
+    renderGraph();
+  }, { passive: false });
+
+  // Pointer-based panning (works for mouse and touch)
+  let isPanning = false;
+  let activePointerId = null;
+  let lastClientX = 0, lastClientY = 0;
+
+  graphCanvas.addEventListener('pointerdown', (e) => {
+    // Start panning on primary button / touch / pen
+    // We'll start panning for left-button or touch/pen — user can hold to pan.
+    if (e.isPrimary) {
+      graphCanvas.setPointerCapture(e.pointerId);
+      isPanning = true;
+      activePointerId = e.pointerId;
+      lastClientX = e.clientX;
+      lastClientY = e.clientY;
+      graphCanvas.style.cursor = 'grabbing';
+    }
+  });
+
+  graphCanvas.addEventListener('pointermove', (e) => {
+    if (!isPanning || e.pointerId !== activePointerId) return;
+    const dx = e.clientX - lastClientX;
+    const dy = e.clientY - lastClientY;
+    lastClientX = e.clientX;
+    lastClientY = e.clientY;
+    // update offset by raw screen delta — this is intuitive and matches zoom scale
+    graphView.offsetX += dx;
+    graphView.offsetY += dy;
+    renderGraph();
+  });
+
+  graphCanvas.addEventListener('pointerup', (e) => {
+    if (e.pointerId !== activePointerId) return;
+    try { graphCanvas.releasePointerCapture(e.pointerId); } catch (err){ /* ignore */ }
+    isPanning = false;
+    activePointerId = null;
+    graphCanvas.style.cursor = 'grab';
+  });
+
+  // also release capture if pointer is canceled / leaves
+  graphCanvas.addEventListener('pointercancel', (e) => {
+    if (e.pointerId !== activePointerId) return;
+    try { graphCanvas.releasePointerCapture(e.pointerId); } catch (err){ /* ignore */ }
+    isPanning = false;
+    activePointerId = null;
+    graphCanvas.style.cursor = 'grab';
+  });
+
+  // Optional: double-click recenters / reset zoom on that point
+  graphCanvas.addEventListener('dblclick', (e) => {
+    const rect = graphCanvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    // zoom in around point
+    const wx = (mx - graphView.offsetX) / graphView.scale;
+    const wy = (my - graphView.offsetY) / graphView.scale;
+    graphView.scale = clamp(graphView.scale * 1.5, 0.05, 6.0);
+    graphView.offsetX = mx - wx * graphView.scale;
+    graphView.offsetY = my - wy * graphView.scale;
+    renderGraph();
+  });
+
+  // render initial graph if the Graph tab is currently active
+  if (isTabActive(tabGraph)) {
+    renderGraph();
+  }
+}
+
+
+  function renderGraph(){
+    if (!graphCtx) return;
+    graphCtx.clearRect(0,0,graphCanvas.width, graphCanvas.height);
+    graphCtx.fillStyle = '#fff'; graphCtx.fillRect(0,0,graphCanvas.width, graphCanvas.height);
+
+    if (realtimeTokens.length > 1){
+      graphCtx.strokeStyle = '#bbb'; graphCtx.lineWidth = 1;
+      graphCtx.beginPath();
+      for (let i=0;i<realtimeTokens.length;i++){
+        const t = realtimeTokens[i];
+        const p = tokenToGraphScreen(t.x, t.y);
+        if (i===0) graphCtx.moveTo(p.x, p.y); else graphCtx.lineTo(p.x, p.y);
+      }
+      graphCtx.stroke();
+    }
+
+    for (let i=0;i<realtimeTokens.length;i++){
+      const t = realtimeTokens[i];
+      const p = tokenToGraphScreen(t.x, t.y);
+      graphCtx.beginPath(); graphCtx.fillStyle = (i === graphHighlightIndex ? '#FFD700' : 'var(--accent)'); graphCtx.arc(p.x, p.y, (i === graphHighlightIndex ? 9 : 6), 0, Math.PI*2); graphCtx.fill();
+      graphCtx.fillStyle = '#000'; graphCtx.font = '10px monospace'; graphCtx.textAlign = 'center'; graphCtx.fillText(String(t.token_id), p.x, p.y - 12);
+    }
+  }
+
+  function tokenToGraphScreen(nx, ny){
+    // normalized token pos -> screen pos using canvas size and graphView
+    const cx = (nx * graphCanvas.width) * graphView.scale + graphView.offsetX;
+    const cy = (ny * graphCanvas.height) * graphView.scale + graphView.offsetY;
+    return { x: cx, y: cy };
+  }
+
+  async function playGraphAnimation(){
+    if (!graphCanvas) { ensureGraphCanvas(); showCanvas(graphCanvas); }
+    if (realtimeTokens.length === 0){ alert('No realtime tokens to play'); return; }
+    // animate a circle moving along token positions and highlight current node
+    playing = true; stopRequested=false;
+    for (let i=0;i<realtimeTokens.length;i++){
+      if (stopRequested) break;
+      const a = realtimeTokens[i];
+      graphHighlightIndex = i;
+      renderGraph();
+      // pause a bit on the node
+      await sleep(120);
+      // if there's a next token, animate from a->b
+      if (i < realtimeTokens.length-1){
+        const b = realtimeTokens[i+1];
+        const aPx = tokenToGraphScreen(a.x, a.y), bPx = tokenToGraphScreen(b.x, b.y);
+        const dist = Math.hypot(bPx.x - aPx.x, bPx.y - aPx.y);
+        const base = 280; const dur = Math.min(800, Math.max(100, Math.round(base * (dist / 200))));
+        const start = performance.now();
+        await new Promise(resolve=>{
+          function step(now){
+            if (stopRequested){ resolve(); return; }
+            const t = Math.min(1, (now-start)/dur);
+            const cx = aPx.x + (bPx.x - aPx.x) * t;
+            const cy = aPx.y + (bPx.y - aPx.y) * t;
+            // draw frame with moving highlight (temporary)
+            graphCtx.clearRect(0,0,graphCanvas.width, graphCanvas.height);
+            renderGraph(); // draw nodes/edges; note renderGraph uses graphHighlightIndex to color nodes. We'll draw moving circle on top.
+            graphCtx.beginPath(); graphCtx.fillStyle = '#FFD700'; graphCtx.arc(cx, cy, 10, 0, Math.PI*2); graphCtx.fill();
+            if (t < 1) requestAnimationFrame(step); else resolve();
+          }
+          requestAnimationFrame(step);
+        });
+      }
+    }
+    graphHighlightIndex = -1;
+    renderGraph();
+    playing = false; stopRequested=false;
+  }
+
+  btnGraphPlay.addEventListener('click', async ()=>{ await playGraphAnimation(); });
+
+  /* ---------- Realtime chunking: Ctrl+Enter sends only new appended text ---------- */
+  modeSelect.addEventListener('change', ()=> {
+    if (modeSelect.value === 'realtime') {
+      realtimeInfo.textContent = '[Realtime] Append-only mode enabled. Press Ctrl+Enter to send the newly typed chunk.';
+    } else {
+      realtimeInfo.textContent = 'Realtime disabled.';
+    }
+  });
+
+	/*
+  // Detect Ctrl+Enter in the textarea
+  txt.addEventListener('keydown', async (e)=>{
+    // TAB handled earlier
+    if (modeSelect.value !== 'realtime') return;
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+      e.preventDefault();
+      const full = txt.value || '';
+      if (full.length < realtimeLastSentPos){
+        // user edited earlier text -> reset
+        if (!confirm('You have edited text before the last sent position. Reset realtime log and start over?')) return;
+        realtimeTokens = []; realtimeLastSentPos = 0; realtimeTextSnapshot = '';
+        realtimeInfo.textContent = 'Realtime log reset due to edit. Sending fresh chunk...';
+      }
+      const chunk = full.slice(realtimeLastSentPos);
+      if (!chunk) { realtimeInfo.textContent = 'Nothing new to send.'; return; }
+      try{
+        const res = await postJSON('/tokenize', { text: chunk });
+        // append chunk tokens (note: token indices are chunk-local)
+        for (const t of res.tokens){
+          realtimeTokens.push({ token_id: t.token_id, token_text: t.token_text, x: t.x, y: t.y });
+        }
+        realtimeLastSentPos = full.length;
+        realtimeTextSnapshot = full;
+        realtimeInfo.textContent = `Sent chunk (${res.count} tokens). Total realtime tokens: ${realtimeTokens.length}`;
+        log('Realtime chunk appended tokens=', res.count, 'total=', realtimeTokens.length);
+        // If Graph tab is active, ensure graph is visible and render
+        if (isTabActive(tabGraph)){
+          ensureGraphCanvas();
+          showCanvas(graphCanvas);
+        }
+        renderGraph();
+      }catch(err){
+        log('Realtime tokenize error', err.message || err);
+      }
+    }
+  });
+  */
+  
+  
+  // Realtime Ctrl+Enter handler (replace existing handler)
+txt.addEventListener('keydown', async (e) => {
+  // TAB insertion is handled by separate handler already; keep that
+  if (modeSelect.value !== 'realtime') return;
+
+  // Ctrl+Enter (or Cmd+Enter) — insert newline at caret, then send only the new appended chunk
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+
+    // Insert '\n' at caret so the newline is included as token
+    const el = txt;
+    const value = el.value;
+    const start = el.selectionStart ?? value.length;
+    const end = el.selectionEnd ?? value.length;
+    el.value = value.slice(0, start) + '\n' + value.slice(end);
+    // put caret after inserted newline
+    el.selectionStart = el.selectionEnd = start + 1;
+
+    // Now compute chunk as appended text since last sent position
+    const full = el.value || '';
+    if (full.length < realtimeLastSentPos) {
+      // user edited before last sent position — ask and reset
+      if (!confirm('You edited earlier text. Reset realtime log and start over?')) return;
+      realtimeTokens = []; realtimeLastSentPos = 0; realtimeTextSnapshot = '';
+      realtimeInfo.textContent = 'Realtime log reset due to edit. Sending fresh chunk...';
+    }
+
+    const chunk = full.slice(realtimeLastSentPos);
+    if (!chunk) { realtimeInfo.textContent = 'Nothing new to send.'; return; }
+
+    try {
+      const res = await postJSON('/tokenize', { text: chunk });
+      // append returned chunk tokens
+      for (const t of res.tokens) {
+        realtimeTokens.push({ token_id: t.token_id, token_text: t.token_text, x: t.x, y: t.y });
+      }
+      realtimeLastSentPos = full.length;
+      realtimeTextSnapshot = full;
+      realtimeInfo.textContent = `Sent chunk (${res.count} tokens). Total realtime tokens: ${realtimeTokens.length}`;
+      log('Realtime chunk appended tokens=', res.count, 'total=', realtimeTokens.length);
+
+      // If Graph tab is active, ensure graph canvas is visible and re-render
+      if (isTabActive(tabGraph)) {
+        ensureGraphCanvas();
+        canvasContainer.innerHTML = ''; canvasContainer.appendChild(graphCanvas);
+      }
+      renderGraph();
+    } catch (err) {
+      log('Realtime tokenize error', err.message || err);
+    }
+  }
+});
+
+
+  btnRealtimeReset.addEventListener('click', ()=>{ realtimeTokens = []; realtimeLastSentPos = 0; realtimeTextSnapshot = ''; realtimeInfo.textContent='Realtime log reset.'; renderGraph(); });
+
+  /* ---------- Tab switching helpers and fixes ---------- */
+  function clearActiveTabs(){ tabCanvas.classList.remove('active'); tabWorld.classList.remove('active'); tabGraph.classList.remove('active'); tabRealtime.classList.remove('active'); }
+  function isTabActive(tab){ return tab.classList.contains('active'); }
+  function showCanvas(c){
+    canvasContainer.innerHTML = '';
+    canvasContainer.appendChild(c);
+  }
+
+  tabCanvas.addEventListener('click', ()=>{ clearActiveTabs(); tabCanvas.classList.add('active'); // show mainCanvas
+    canvasContainer.innerHTML=''; canvasContainer.appendChild(mainCanvas); drawMainForKey(currentSeqKey); });
+
+  tabWorld.addEventListener('click', async ()=>{ clearActiveTabs(); tabWorld.classList.add('active'); ensureWorldCanvas(); canvasContainer.innerHTML=''; canvasContainer.appendChild(worldCanvas); await refreshGroupsAndMembers(); drawWorld(); });
+
+  tabGraph.addEventListener('click', ()=>{ clearActiveTabs(); tabGraph.classList.add('active'); ensureGraphCanvas(); canvasContainer.innerHTML=''; canvasContainer.appendChild(graphCanvas); renderGraph(); });
+
+  tabRealtime.addEventListener('click', ()=>{ clearActiveTabs(); tabRealtime.classList.add('active'); canvasContainer.innerHTML = ''; const box = document.createElement('div'); box.style.padding='12px'; box.innerHTML='<strong>Realtime mode:</strong><div style="margin-top:8px;">Type in the left textarea and press <code>Ctrl+Enter</code> to send only the newly typed chunk (append-only). Use "Reset realtime log" if you edit earlier text.</div>'; canvasContainer.appendChild(box); });
+
+  // pan/select for world
+  document.getElementById('btnPanMode').addEventListener('click', ()=>{ worldState.panMode = true; if (worldCanvas) worldCanvas.style.cursor='grab'; });
+  document.getElementById('btnSelectMode').addEventListener('click', ()=>{ worldState.panMode = false; if (worldCanvas) worldCanvas.style.cursor='default'; });
+
+  // Play selected group button
+  btnPlayGroup.addEventListener('click', async ()=>{ const gid = Number(selGroup.value); if (!gid){ alert('Select a group'); return; } await playGroupById(gid); });
+
+  /* ---------- Zoom controls (apply to active tab) ---------- */
+  zoomIn.addEventListener('click', ()=>{
+    if (isTabActive(tabGraph)){ graphView.scale *= 1.12; renderGraph(); }
+    else if (isTabActive(tabWorld)){ setWorldScale(worldView.scale * 1.12); }
+    else { mainZoom = Math.min(4, mainZoom * 1.12); if (currentSeqKey) drawMainForKey(currentSeqKey); }
+  });
+  zoomOut.addEventListener('click', ()=>{
+    if (isTabActive(tabGraph)){ graphView.scale /= 1.12; renderGraph(); }
+    else if (isTabActive(tabWorld)){ setWorldScale(worldView.scale / 1.12); }
+    else { mainZoom = Math.max(0.2, mainZoom / 1.12); if (currentSeqKey) drawMainForKey(currentSeqKey); }
+  });
+  resetDefaults.addEventListener('click', ()=>{
+    mainZoom = 1.0; graphView.scale = 1.0; graphView.offsetX = 0; graphView.offsetY = 0; worldView.scale = 0.15; worldView.offsetX = 0; worldView.offsetY = 0;
+    if (isTabActive(tabGraph)){ renderGraph(); }
+    if (isTabActive(tabWorld)){ drawWorld(); }
+    if (currentSeqKey) drawMainForKey(currentSeqKey);
+  });
+
+  /* ---------- play graph animation (separate) ---------- */
+  // playGraphAnimation is implemented above as playGraphAnimation()
+
+  /* ---------- initial setup ---------- */
+  tokenCount.textContent = '0';
+  mainCtx.fillStyle = '#fff'; mainCtx.fillRect(0,0,mainCanvas.width, mainCanvas.height);
+  txt.value = `// Example\nfunction add(a,b){ return a+b; }\n// Try realtime: switch Mode -> Realtime, append text, press Ctrl+Enter. Use TAB to insert tabs.`;
+
+  // load groups on start
+  await refreshGroupsAndMembers();
+
+  // expose debug
+  window.__debug = { sequences, realtimeTokens, groupMembers, groups, graphView, worldView, mainZoom };
+
+})();
+</script>
+</body>
+</html>

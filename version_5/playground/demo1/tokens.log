@@ -1,0 +1,340 @@
+2025-08-31 11:15:10,519 INFO Loaded tiktoken encoding: cl100k_base
+2025-08-31 11:15:10,521 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 11:15:10,734 INFO Processed 10000 tokens...
+2025-08-31 11:15:10,960 INFO Processed 20000 tokens...
+2025-08-31 11:15:11,229 INFO Processed 30000 tokens...
+2025-08-31 11:15:11,456 INFO Processed 40000 tokens...
+2025-08-31 11:15:11,660 INFO Processed 50000 tokens...
+2025-08-31 11:15:11,845 INFO Processed 60000 tokens...
+2025-08-31 11:15:12,113 INFO Processed 70000 tokens...
+2025-08-31 11:15:12,314 INFO Processed 80000 tokens...
+2025-08-31 11:15:12,509 INFO Processed 90000 tokens...
+2025-08-31 11:15:12,725 INFO Vocab grid built: tokens=100000 grid=200x200 time=2.20s
+2025-08-31 11:15:12,738 INFO Starting app on http://127.0.0.1:5000
+2025-08-31 11:15:17,076 INFO Loaded tiktoken encoding: cl100k_base
+2025-08-31 11:15:17,086 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 11:15:17,278 INFO Processed 10000 tokens...
+2025-08-31 11:15:17,544 INFO Processed 20000 tokens...
+2025-08-31 11:15:17,760 INFO Processed 30000 tokens...
+2025-08-31 11:15:17,959 INFO Processed 40000 tokens...
+2025-08-31 11:15:18,386 INFO Processed 50000 tokens...
+2025-08-31 11:15:18,651 INFO Processed 60000 tokens...
+2025-08-31 11:15:18,896 INFO Processed 70000 tokens...
+2025-08-31 11:15:19,136 INFO Processed 80000 tokens...
+2025-08-31 11:15:19,348 INFO Processed 90000 tokens...
+2025-08-31 11:15:19,562 INFO Vocab grid built: tokens=100000 grid=200x200 time=2.48s
+2025-08-31 11:15:19,572 INFO Starting app on http://127.0.0.1:5000
+2025-08-31 11:15:50,166 INFO Tokenize request len(text)=28
+2025-08-31 11:15:50,176 INFO Tokenized chunk -> 9 tokens prompt_key=d6b238e392cbc25db33999d922873fbcf4aa8c3d23a3031818833282f475fa3c centroid=(0.3318,0.4888)
+2025-08-31 11:17:26,471 INFO Tokenize request len(text)=12
+2025-08-31 11:17:26,475 INFO Tokenized chunk -> 3 tokens prompt_key=4f9c3633e8859bbe74114c4f82aa23ada90dc9a7b59643fd36451239ee1163ea centroid=(0.4867,0.7204)
+2025-08-31 11:17:43,281 INFO Tokenize request len(text)=3
+2025-08-31 11:17:43,283 INFO Tokenized chunk -> 1 tokens prompt_key=3232071abababc4ecfc4fbb8598339a5ac60538dab325ec2e7423908228ba3e6 centroid=(0.0281,0.6880)
+2025-08-31 11:17:55,559 INFO Tokenize request len(text)=12
+2025-08-31 11:17:55,562 INFO Tokenized chunk -> 3 tokens prompt_key=4f9c3633e8859bbe74114c4f82aa23ada90dc9a7b59643fd36451239ee1163ea centroid=(0.4867,0.7204)
+2025-08-31 11:18:05,340 INFO Tokenize request len(text)=10
+2025-08-31 11:18:05,357 INFO Tokenized chunk -> 7 tokens prompt_key=7fd6b3f7dff45a54fa0591f6d0fd977483f885086e9759a19c26f5e7fe7f6044 centroid=(0.4109,0.5450)
+2025-08-31 11:18:22,536 INFO Tokenize request len(text)=34
+2025-08-31 11:18:22,540 INFO Tokenized chunk -> 16 tokens prompt_key=725ed40a8ab4a2166ae9881f6be538f9eded6b7326e1118426b766c625c3b261 centroid=(0.4600,0.3849)
+2025-08-31 11:18:30,715 INFO Saved groups to groups.json
+2025-08-31 11:18:30,718 INFO Created group Group id=1
+2025-08-31 11:18:39,976 INFO Tokenize request len(text)=56
+2025-08-31 11:18:39,980 INFO Tokenized chunk -> 26 tokens prompt_key=0586ba0b4dc816ed69dabcc98ef808c50132fe0334f314fc9377732e41c1cf41 centroid=(0.4499,0.4667)
+2025-08-31 11:18:42,340 INFO Saved groups to groups.json
+2025-08-31 11:18:42,343 INFO Created group Group id=2
+2025-08-31 11:18:45,354 INFO Saved groups to groups.json
+2025-08-31 11:18:45,361 INFO Added prompt 0586ba0b4dc816ed69dabcc98ef808c50132fe0334f314fc9377732e41c1cf41 to group 1 at local (0.4499,0.4667)
+2025-08-31 11:19:14,663 INFO Tokenize request len(text)=8
+2025-08-31 11:19:14,672 INFO Tokenized chunk -> 4 tokens prompt_key=a573030fccd03628c56f52ced3e07874bbe4d6e1fbc566c7ebcad8cb9b47f230 centroid=(0.5072,0.3715)
+2025-08-31 11:22:20,361 INFO Tokenize request len(text)=6
+2025-08-31 11:22:20,365 INFO Tokenized chunk -> 2 tokens prompt_key=55870a0fb5ca3e5532ef5d204c9aa4d747e3f0c21a49f177eaa75f5c7e4bcd21 centroid=(0.2401,0.1606)
+2025-08-31 11:22:29,737 INFO Tokenize request len(text)=70
+2025-08-31 11:22:29,744 INFO Tokenized chunk -> 32 tokens prompt_key=ea9e232299952d1b130dc0797732a8ee34ba614cd706c193cb26baa223343299 centroid=(0.4305,0.4552)
+2025-08-31 11:26:35,046 INFO Loaded tiktoken encoding: cl100k_base
+2025-08-31 11:26:35,049 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 11:26:35,242 INFO Processed 10000 tokens...
+2025-08-31 11:26:35,470 INFO Processed 20000 tokens...
+2025-08-31 11:26:35,675 INFO Processed 30000 tokens...
+2025-08-31 11:26:35,958 INFO Processed 40000 tokens...
+2025-08-31 11:26:36,169 INFO Processed 50000 tokens...
+2025-08-31 11:26:36,380 INFO Processed 60000 tokens...
+2025-08-31 11:26:36,636 INFO Processed 70000 tokens...
+2025-08-31 11:26:36,881 INFO Processed 80000 tokens...
+2025-08-31 11:26:37,097 INFO Processed 90000 tokens...
+2025-08-31 11:26:37,316 INFO Vocab grid built: tokens=100000 grid=200x200 time=2.27s
+2025-08-31 11:26:37,336 INFO Loaded groups from groups.json
+2025-08-31 11:26:37,351 INFO Starting app on http://127.0.0.1:5000
+2025-08-31 11:26:41,215 INFO Loaded tiktoken encoding: cl100k_base
+2025-08-31 11:26:41,219 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 11:26:41,443 INFO Processed 10000 tokens...
+2025-08-31 11:26:41,693 INFO Processed 20000 tokens...
+2025-08-31 11:26:41,902 INFO Processed 30000 tokens...
+2025-08-31 11:26:42,122 INFO Processed 40000 tokens...
+2025-08-31 11:26:42,395 INFO Processed 50000 tokens...
+2025-08-31 11:26:42,603 INFO Processed 60000 tokens...
+2025-08-31 11:26:42,857 INFO Processed 70000 tokens...
+2025-08-31 11:26:43,040 INFO Processed 80000 tokens...
+2025-08-31 11:26:43,257 INFO Processed 90000 tokens...
+2025-08-31 11:26:43,488 INFO Vocab grid built: tokens=100000 grid=200x200 time=2.27s
+2025-08-31 11:26:43,492 INFO Loaded groups from groups.json
+2025-08-31 11:26:43,507 INFO Starting app on http://127.0.0.1:5000
+2025-08-31 11:27:15,500 INFO Tokenize request len(text)=12
+2025-08-31 11:27:15,505 INFO Tokenized chunk -> 3 tokens prompt_key=4f9c3633e8859bbe74114c4f82aa23ada90dc9a7b59643fd36451239ee1163ea centroid=(0.4867,0.7204)
+2025-08-31 11:27:21,871 INFO Tokenize request len(text)=12
+2025-08-31 11:27:21,874 INFO Tokenized chunk -> 6 tokens prompt_key=4d85756ac4e9f1e17996d3c813ef658f16b6132ade521663bac549ad2e64d93c centroid=(0.4168,0.4265)
+2025-08-31 11:27:25,919 INFO Tokenize request len(text)=24
+2025-08-31 11:27:25,929 INFO Tokenized chunk -> 9 tokens prompt_key=e61e1caa585ae486d6fb668cfab7351339d55000670a32343c4cd62b6192ce91 centroid=(0.4401,0.5245)
+2025-08-31 11:29:57,152 INFO Loaded tiktoken encoding: cl100k_base
+2025-08-31 11:29:57,154 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 11:29:57,353 INFO Processed 10000 tokens...
+2025-08-31 11:29:57,568 INFO Processed 20000 tokens...
+2025-08-31 11:29:57,805 INFO Processed 30000 tokens...
+2025-08-31 11:29:57,981 INFO Processed 40000 tokens...
+2025-08-31 11:29:58,202 INFO Processed 50000 tokens...
+2025-08-31 11:29:58,430 INFO Processed 60000 tokens...
+2025-08-31 11:29:58,661 INFO Processed 70000 tokens...
+2025-08-31 11:29:58,869 INFO Processed 80000 tokens...
+2025-08-31 11:29:59,065 INFO Processed 90000 tokens...
+2025-08-31 11:29:59,302 INFO Vocab grid built: tokens=100000 grid=200x200 time=2.15s
+2025-08-31 11:29:59,309 INFO Loaded groups from groups.json
+2025-08-31 11:29:59,325 INFO Starting app on http://127.0.0.1:5000
+2025-08-31 11:30:03,261 INFO Loaded tiktoken encoding: cl100k_base
+2025-08-31 11:30:03,266 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 11:30:03,506 INFO Processed 10000 tokens...
+2025-08-31 11:30:03,739 INFO Processed 20000 tokens...
+2025-08-31 11:30:03,961 INFO Processed 30000 tokens...
+2025-08-31 11:30:04,168 INFO Processed 40000 tokens...
+2025-08-31 11:30:04,364 INFO Processed 50000 tokens...
+2025-08-31 11:30:04,578 INFO Processed 60000 tokens...
+2025-08-31 11:30:04,815 INFO Processed 70000 tokens...
+2025-08-31 11:30:05,027 INFO Processed 80000 tokens...
+2025-08-31 11:30:05,240 INFO Processed 90000 tokens...
+2025-08-31 11:30:05,449 INFO Vocab grid built: tokens=100000 grid=200x200 time=2.18s
+2025-08-31 11:30:05,455 INFO Loaded groups from groups.json
+2025-08-31 11:30:05,468 INFO Starting app on http://127.0.0.1:5000
+2025-08-31 11:30:16,506 INFO Tokenize request len(text)=140
+2025-08-31 11:30:16,515 INFO Tokenized chunk -> 37 tokens prompt_key=04b08214a7504c55b02b84c12f717380528fb0d882733d184c87380269150ddf centroid=(0.4549,0.5012)
+2025-08-31 11:30:30,523 INFO Tokenize request len(text)=140
+2025-08-31 11:30:30,528 INFO Tokenized chunk -> 37 tokens prompt_key=04b08214a7504c55b02b84c12f717380528fb0d882733d184c87380269150ddf centroid=(0.4549,0.5012)
+2025-08-31 11:31:03,685 INFO Tokenize request len(text)=29
+2025-08-31 11:31:03,692 INFO Tokenized chunk -> 6 tokens prompt_key=09bd44b519e9d30481bbbbd18f026ba7031aa1511b86f9e113b264eff047fb1f centroid=(0.3872,0.3575)
+2025-08-31 11:31:06,649 INFO Tokenize request len(text)=29
+2025-08-31 11:31:06,651 INFO Tokenized chunk -> 6 tokens prompt_key=09bd44b519e9d30481bbbbd18f026ba7031aa1511b86f9e113b264eff047fb1f centroid=(0.3872,0.3575)
+2025-08-31 11:31:36,362 INFO Tokenize request len(text)=16
+2025-08-31 11:31:36,369 INFO Tokenized chunk -> 7 tokens prompt_key=190d073dd0b5df8632d97b06f7d27855ada4904f201dc3b7009424684b12c5a1 centroid=(0.5392,0.5521)
+2025-08-31 11:31:41,505 INFO Tokenize request len(text)=45
+2025-08-31 11:31:41,508 INFO Tokenized chunk -> 18 tokens prompt_key=63aad81141e07dedd33c8efd4d77827c14d684af24c0c4c31447a8d56d4cbdc6 centroid=(0.4595,0.4687)
+2025-08-31 11:32:34,518 INFO Saved groups to groups.json
+2025-08-31 11:32:34,521 INFO Created group Group5 id=3
+2025-08-31 11:33:10,528 INFO Tokenize request len(text)=45
+2025-08-31 11:33:10,531 INFO Tokenized chunk -> 18 tokens prompt_key=63aad81141e07dedd33c8efd4d77827c14d684af24c0c4c31447a8d56d4cbdc6 centroid=(0.4595,0.4687)
+2025-08-31 11:34:36,372 INFO Tokenize request len(text)=42
+2025-08-31 11:34:36,379 INFO Tokenized chunk -> 11 tokens prompt_key=d166bc39d0fba5aa9ae79480e74c2ecb88a16194a340a8a29b71b0f04a23edf8 centroid=(0.5762,0.4521)
+2025-08-31 11:34:39,040 INFO Tokenize request len(text)=42
+2025-08-31 11:34:39,045 INFO Tokenized chunk -> 11 tokens prompt_key=d166bc39d0fba5aa9ae79480e74c2ecb88a16194a340a8a29b71b0f04a23edf8 centroid=(0.5762,0.4521)
+2025-08-31 11:34:49,728 INFO Tokenize request len(text)=1
+2025-08-31 11:34:49,734 INFO Tokenized chunk -> 1 tokens prompt_key=3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d centroid=(0.6077,0.7290)
+2025-08-31 11:34:56,903 INFO Tokenize request len(text)=17
+2025-08-31 11:34:56,906 INFO Tokenized chunk -> 5 tokens prompt_key=013d729e98b28b920f04b0539a329ce9c80e05a3f383c5cf12930cb3e6bf26e3 centroid=(0.5720,0.6788)
+2025-08-31 11:35:01,998 INFO Tokenize request len(text)=60
+2025-08-31 11:35:02,019 INFO Tokenized chunk -> 16 tokens prompt_key=95aaa8cb23a89892f86ce3a627aed1f9e88d9ef04b3301a19f918d99f0f1e45e centroid=(0.5596,0.4993)
+2025-08-31 11:40:15,476 INFO Loaded tiktoken encoding: cl100k_base
+2025-08-31 11:40:15,480 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 11:40:15,680 INFO Processed 10000 tokens...
+2025-08-31 11:40:15,899 INFO Processed 20000 tokens...
+2025-08-31 11:40:16,110 INFO Processed 30000 tokens...
+2025-08-31 11:40:16,377 INFO Processed 40000 tokens...
+2025-08-31 11:40:16,602 INFO Processed 50000 tokens...
+2025-08-31 11:40:16,781 INFO Processed 60000 tokens...
+2025-08-31 11:40:17,034 INFO Processed 70000 tokens...
+2025-08-31 11:40:17,254 INFO Processed 80000 tokens...
+2025-08-31 11:40:17,472 INFO Processed 90000 tokens...
+2025-08-31 11:40:17,725 INFO Vocab grid built: tokens=100000 grid=200x200 time=2.24s
+2025-08-31 11:40:17,746 INFO Loaded groups from groups.json
+2025-08-31 11:40:17,757 INFO Starting app on http://127.0.0.1:5000
+2025-08-31 11:40:21,731 INFO Loaded tiktoken encoding: cl100k_base
+2025-08-31 11:40:21,738 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 11:40:21,941 INFO Processed 10000 tokens...
+2025-08-31 11:40:22,255 INFO Processed 20000 tokens...
+2025-08-31 11:40:22,484 INFO Processed 30000 tokens...
+2025-08-31 11:40:22,716 INFO Processed 40000 tokens...
+2025-08-31 11:40:22,915 INFO Processed 50000 tokens...
+2025-08-31 11:40:23,129 INFO Processed 60000 tokens...
+2025-08-31 11:40:23,449 INFO Processed 70000 tokens...
+2025-08-31 11:40:23,665 INFO Processed 80000 tokens...
+2025-08-31 11:40:23,880 INFO Processed 90000 tokens...
+2025-08-31 11:40:24,092 INFO Vocab grid built: tokens=100000 grid=200x200 time=2.35s
+2025-08-31 11:40:24,094 INFO Loaded groups from groups.json
+2025-08-31 11:40:24,106 INFO Starting app on http://127.0.0.1:5000
+2025-08-31 11:40:44,233 INFO Tokenize request len(text)=143
+2025-08-31 11:40:44,277 INFO Tokenized chunk -> 41 tokens prompt_key=55c26cc3d99db268de7c68381fe21683e18f9989af7e166679f5337dcbb793cf centroid=(0.4589,0.4866)
+2025-08-31 11:40:49,354 INFO Tokenize request len(text)=143
+2025-08-31 11:40:49,359 INFO Tokenized chunk -> 41 tokens prompt_key=55c26cc3d99db268de7c68381fe21683e18f9989af7e166679f5337dcbb793cf centroid=(0.4589,0.4866)
+2025-08-31 11:43:02,230 INFO Saved groups to groups.json
+2025-08-31 11:43:02,239 INFO Created group Group5421 id=4
+2025-08-31 11:43:38,089 INFO Tokenize request len(text)=15
+2025-08-31 11:43:38,093 INFO Tokenized chunk -> 4 tokens prompt_key=3d83e8f9a6a1dc51d84309bfdda840640aaca6bb26ac360546d3e44a0229173c centroid=(0.5789,0.4071)
+2025-08-31 11:43:39,807 INFO Tokenize request len(text)=15
+2025-08-31 11:43:39,811 INFO Tokenized chunk -> 4 tokens prompt_key=3d83e8f9a6a1dc51d84309bfdda840640aaca6bb26ac360546d3e44a0229173c centroid=(0.5789,0.4071)
+2025-08-31 11:44:35,312 INFO Saved groups to groups.json
+2025-08-31 11:44:35,315 INFO Added prompt 3d83e8f9a6a1dc51d84309bfdda840640aaca6bb26ac360546d3e44a0229173c to group 4 at local (0.5789,0.4071)
+2025-08-31 11:44:48,787 INFO Saved groups to groups.json
+2025-08-31 11:44:48,798 INFO Added prompt 3d83e8f9a6a1dc51d84309bfdda840640aaca6bb26ac360546d3e44a0229173c to group 4 at local (0.5789,0.4071)
+2025-08-31 11:45:34,789 INFO Tokenize request len(text)=12
+2025-08-31 11:45:34,798 INFO Tokenized chunk -> 3 tokens prompt_key=a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447 centroid=(0.7243,0.5835)
+2025-08-31 11:45:37,889 INFO Tokenize request len(text)=1
+2025-08-31 11:45:37,894 INFO Tokenized chunk -> 1 tokens prompt_key=01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b centroid=(0.5879,0.4430)
+2025-08-31 11:45:39,842 INFO Tokenize request len(text)=28
+2025-08-31 11:45:39,846 INFO Tokenized chunk -> 7 tokens prompt_key=e4d6537ae5c1c427a12b5c0f085fefc4a0f64121b01eb6c28e0660139ab50f94 centroid=(0.6548,0.5277)
+2025-08-31 11:45:48,239 INFO Tokenize request len(text)=15
+2025-08-31 11:45:48,245 INFO Tokenized chunk -> 4 tokens prompt_key=5bcdb6045d7e56ee3c760943b087cdf67917d6b33b47a24b85eccd23200841f0 centroid=(0.8327,0.7433)
+2025-08-31 11:45:53,232 INFO Tokenize request len(text)=2
+2025-08-31 11:45:53,236 INFO Tokenized chunk -> 1 tokens prompt_key=75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070 centroid=(0.6834,0.7575)
+2025-08-31 11:45:54,394 INFO Tokenize request len(text)=45
+2025-08-31 11:45:54,401 INFO Tokenized chunk -> 11 tokens prompt_key=aa855f08d7275f17d8762850b1cff8a6edb6ffa96db5480549b8d1a10ee445a8 centroid=(0.7368,0.5961)
+2025-08-31 11:46:15,616 INFO Tokenize request len(text)=42
+2025-08-31 11:46:15,621 INFO Tokenized chunk -> 10 tokens prompt_key=d1d0561eca2ccffe2ee37b5d1a864c3243722add5c572700d8fd51ddbabd5f50 centroid=(0.5201,0.3932)
+2025-08-31 11:46:20,232 INFO Tokenize request len(text)=87
+2025-08-31 11:46:20,236 INFO Tokenized chunk -> 21 tokens prompt_key=7c7378862c6ec85c786d301828c122a378e938f541367e63de24b63f8db25aa4 centroid=(0.6336,0.4995)
+2025-08-31 11:47:06,790 INFO Tokenize request len(text)=54
+2025-08-31 11:47:06,801 INFO Tokenized chunk -> 19 tokens prompt_key=49407948c68a83ae94d57cdb9cf0ebe6fe5ec2e15f2864b86b749315b834787c centroid=(0.5167,0.4519)
+2025-08-31 11:47:09,057 INFO Tokenize request len(text)=54
+2025-08-31 11:47:09,060 INFO Tokenized chunk -> 19 tokens prompt_key=49407948c68a83ae94d57cdb9cf0ebe6fe5ec2e15f2864b86b749315b834787c centroid=(0.5167,0.4519)
+2025-08-31 11:47:40,167 INFO Saved groups to groups.json
+2025-08-31 11:47:40,192 INFO Created group Group1241221 id=5
+2025-08-31 11:47:50,796 INFO Saved groups to groups.json
+2025-08-31 11:47:50,806 INFO Created group Group412412 id=6
+2025-08-31 11:48:14,366 INFO Saved groups to groups.json
+2025-08-31 11:48:14,370 INFO Added prompt 49407948c68a83ae94d57cdb9cf0ebe6fe5ec2e15f2864b86b749315b834787c to group 1 at local (0.5167,0.4519)
+2025-08-31 11:48:47,580 INFO Saved groups to groups.json
+2025-08-31 11:48:47,586 INFO Added prompt 49407948c68a83ae94d57cdb9cf0ebe6fe5ec2e15f2864b86b749315b834787c to group 1 at local (0.5167,0.4519)
+2025-08-31 11:49:21,489 INFO Tokenize request len(text)=55
+2025-08-31 11:49:21,493 INFO Tokenized chunk -> 19 tokens prompt_key=63d0e9df2c98ce396b623ba0132bbb69455ca39bb531ccfe61d26b020e732194 centroid=(0.5172,0.4480)
+2025-08-31 11:49:49,024 INFO Tokenize request len(text)=55
+2025-08-31 11:49:49,028 INFO Tokenized chunk -> 19 tokens prompt_key=63d0e9df2c98ce396b623ba0132bbb69455ca39bb531ccfe61d26b020e732194 centroid=(0.5172,0.4480)
+2025-08-31 12:00:13,300 INFO Loaded tiktoken encoding: cl100k_base
+2025-08-31 12:00:13,304 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 12:00:13,486 INFO Processed 10000 tokens...
+2025-08-31 12:00:13,698 INFO Processed 20000 tokens...
+2025-08-31 12:00:13,925 INFO Processed 30000 tokens...
+2025-08-31 12:00:14,165 INFO Processed 40000 tokens...
+2025-08-31 12:00:14,365 INFO Processed 50000 tokens...
+2025-08-31 12:00:15,018 INFO Processed 60000 tokens...
+2025-08-31 12:00:15,327 INFO Processed 70000 tokens...
+2025-08-31 12:00:15,602 INFO Processed 80000 tokens...
+2025-08-31 12:00:15,806 INFO Processed 90000 tokens...
+2025-08-31 12:00:16,055 INFO Vocab grid built: tokens=100000 grid=200x200 time=2.75s
+2025-08-31 12:00:16,062 INFO Loaded groups from groups.json
+2025-08-31 12:00:16,099 INFO Starting app on http://127.0.0.1:5000
+2025-08-31 12:00:20,525 INFO Loaded tiktoken encoding: cl100k_base
+2025-08-31 12:00:20,526 INFO Building vocab positions for token ids 0..99999 (this may take a few seconds)...
+2025-08-31 12:00:20,727 INFO Processed 10000 tokens...
+2025-08-31 12:00:21,196 INFO Processed 20000 tokens...
+2025-08-31 12:00:21,484 INFO Processed 30000 tokens...
+2025-08-31 12:00:21,714 INFO Processed 40000 tokens...
+2025-08-31 12:00:21,915 INFO Processed 50000 tokens...
+2025-08-31 12:00:22,155 INFO Processed 60000 tokens...
+2025-08-31 12:00:22,418 INFO Processed 70000 tokens...
+2025-08-31 12:00:22,621 INFO Processed 80000 tokens...
+2025-08-31 12:00:22,833 INFO Processed 90000 tokens...
+2025-08-31 12:00:23,084 INFO Vocab grid built: tokens=100000 grid=200x200 time=2.56s
+2025-08-31 12:00:23,088 INFO Loaded groups from groups.json
+2025-08-31 12:00:23,100 INFO Starting app on http://127.0.0.1:5000
+2025-08-31 12:00:29,120 INFO Saved groups to groups.json
+2025-08-31 12:00:29,125 INFO Cleared all groups
+2025-08-31 12:00:37,724 INFO Tokenize request len(text)=120
+2025-08-31 12:00:37,736 INFO Tokenized chunk -> 31 tokens prompt_key=2c94b5258174751b526a57710304b88b4ca966cd3125c5937d84e2b60b7224dc centroid=(0.3746,0.4665)
+2025-08-31 12:00:51,306 INFO Saved groups to groups.json
+2025-08-31 12:00:51,309 INFO Created group Group id=1
+2025-08-31 12:01:04,264 INFO Tokenize request len(text)=32
+2025-08-31 12:01:04,273 INFO Tokenized chunk -> 9 tokens prompt_key=e27537c44b26511a3e5f0d009cfd4b43d7a2c9c03c3abb12ef1adf31df6a131b centroid=(0.4725,0.5168)
+2025-08-31 12:01:10,156 INFO Saved groups to groups.json
+2025-08-31 12:01:10,160 INFO Created group Group1 id=2
+2025-08-31 12:01:42,851 INFO Saved groups to groups.json
+2025-08-31 12:01:42,856 INFO Added prompt e27537c44b26511a3e5f0d009cfd4b43d7a2c9c03c3abb12ef1adf31df6a131b to group 1 at local (0.4725,0.5168)
+2025-08-31 12:01:52,094 INFO Saved groups to groups.json
+2025-08-31 12:01:52,099 INFO Added prompt e27537c44b26511a3e5f0d009cfd4b43d7a2c9c03c3abb12ef1adf31df6a131b to group 2 at local (0.4725,0.5168)
+2025-08-31 12:03:00,530 INFO Tokenize request len(text)=616
+2025-08-31 12:03:00,539 INFO Tokenized chunk -> 149 tokens prompt_key=04f219ad9c5b78eb6086e960da40157cd693a33afebd178f623cf7e3eefb26f3 centroid=(0.4574,0.4791)
+2025-08-31 12:03:04,505 INFO Saved groups to groups.json
+2025-08-31 12:03:04,509 INFO Created group Group3 id=3
+2025-08-31 12:03:15,246 INFO Saved groups to groups.json
+2025-08-31 12:03:15,248 INFO Added prompt 04f219ad9c5b78eb6086e960da40157cd693a33afebd178f623cf7e3eefb26f3 to group 3 at local (0.4574,0.4791)
+2025-08-31 12:03:48,857 INFO Saved groups to groups.json
+2025-08-31 12:03:48,866 INFO Added prompt e27537c44b26511a3e5f0d009cfd4b43d7a2c9c03c3abb12ef1adf31df6a131b to group 1 at local (0.4725,0.5168)
+2025-08-31 12:05:22,587 INFO Tokenize request len(text)=12846
+2025-08-31 12:05:22,641 INFO Tokenized chunk -> 3269 tokens prompt_key=c5ac5d9d946f600cc5e71a892d9439e2f1c97e8e393e816fea95e6bc41a098c7 centroid=(0.4849,0.4765)
+2025-08-31 12:05:30,440 INFO Saved groups to groups.json
+2025-08-31 12:05:30,447 INFO Created group Group_python_serw id=4
+2025-08-31 12:05:41,100 INFO Saved groups to groups.json
+2025-08-31 12:05:41,118 INFO Added prompt c5ac5d9d946f600cc5e71a892d9439e2f1c97e8e393e816fea95e6bc41a098c7 to group 4 at local (0.4849,0.4765)
+2025-08-31 12:05:55,650 INFO Tokenize request len(text)=241
+2025-08-31 12:05:55,657 INFO Tokenized chunk -> 60 tokens prompt_key=169b019bd526f9a0ab169ec2e5ae4c774795ba5684bc2f3904031c49afcd278f centroid=(0.4006,0.5042)
+2025-08-31 12:06:04,309 INFO Saved groups to groups.json
+2025-08-31 12:06:04,313 INFO Created group Group_end_comments id=5
+2025-08-31 12:06:11,957 INFO Saved groups to groups.json
+2025-08-31 12:06:11,962 INFO Added prompt 169b019bd526f9a0ab169ec2e5ae4c774795ba5684bc2f3904031c49afcd278f to group 5 at local (0.4006,0.5042)
+2025-08-31 12:09:07,968 INFO Saved groups to groups.json
+2025-08-31 12:09:07,970 INFO Added prompt 169b019bd526f9a0ab169ec2e5ae4c774795ba5684bc2f3904031c49afcd278f to group 5 at local (0.4006,0.5042)
+2025-08-31 12:09:34,943 INFO Tokenize request len(text)=24
+2025-08-31 12:09:34,957 INFO Tokenized chunk -> 7 tokens prompt_key=a31eb6d742ec98d1be3c52a6bd06068b8331c532bc28048b000317ec228011ae centroid=(0.5599,0.5105)
+2025-08-31 12:09:42,371 INFO Saved groups to groups.json
+2025-08-31 12:09:42,374 INFO Created group write fun id=6
+2025-08-31 12:09:55,812 INFO Saved groups to groups.json
+2025-08-31 12:09:55,815 INFO Added prompt a31eb6d742ec98d1be3c52a6bd06068b8331c532bc28048b000317ec228011ae to group 6 at local (0.5599,0.5105)
+2025-08-31 12:11:40,686 INFO Saved groups to groups.json
+2025-08-31 12:11:40,691 INFO Updated group 3 location to (685.58,1235.53)
+2025-08-31 12:11:46,362 INFO Saved groups to groups.json
+2025-08-31 12:11:46,368 INFO Updated group 2 location to (1861.01,1937.40)
+2025-08-31 12:11:47,254 INFO Saved groups to groups.json
+2025-08-31 12:11:47,256 INFO Updated group 1 location to (1321.00,820.00)
+2025-08-31 12:11:51,432 INFO Saved groups to groups.json
+2025-08-31 12:11:51,435 INFO Updated group 1 location to (314.49,2103.47)
+2025-08-31 12:12:03,809 INFO Saved groups to groups.json
+2025-08-31 12:12:03,812 INFO Updated group 6 location to (3380.54,1560.34)
+2025-08-31 12:12:05,563 INFO Saved groups to groups.json
+2025-08-31 12:12:05,566 INFO Updated group 2 location to (1861.01,1937.40)
+2025-08-31 12:12:07,802 INFO Saved groups to groups.json
+2025-08-31 12:12:07,807 INFO Updated group 3 location to (700.51,1250.47)
+2025-08-31 12:12:10,381 INFO Saved groups to groups.json
+2025-08-31 12:12:10,385 INFO Updated group 3 location to (2649.31,3393.40)
+2025-08-31 12:12:14,563 INFO Saved groups to groups.json
+2025-08-31 12:12:14,565 INFO Updated group 4 location to (1563.00,967.00)
+2025-08-31 12:12:53,831 INFO Saved groups to groups.json
+2025-08-31 12:12:53,837 INFO Updated group 2 location to (1861.01,1937.40)
+2025-08-31 12:12:56,682 INFO Saved groups to groups.json
+2025-08-31 12:12:56,684 INFO Moved member 1 in group 1 to local (0.4725,0.5168)
+2025-08-31 12:13:01,133 INFO Saved groups to groups.json
+2025-08-31 12:13:01,140 INFO Updated group 1 location to (314.49,2103.47)
+2025-08-31 12:13:04,215 INFO Saved groups to groups.json
+2025-08-31 12:13:04,217 INFO Updated group 1 location to (314.49,2103.47)
+2025-08-31 12:13:05,620 INFO Saved groups to groups.json
+2025-08-31 12:13:05,623 INFO Updated group 4 location to (1563.00,967.00)
+2025-08-31 12:13:07,310 INFO Saved groups to groups.json
+2025-08-31 12:13:07,313 INFO Updated group 5 location to (379.00,1170.00)
+2025-08-31 12:13:13,747 INFO Saved groups to groups.json
+2025-08-31 12:13:13,750 INFO Moved member 1 in group 4 to local (1.0000,1.0000)
+2025-08-31 12:13:14,813 INFO Saved groups to groups.json
+2025-08-31 12:13:14,816 INFO Updated group 4 location to (1563.00,967.00)
+2025-08-31 12:13:16,347 INFO Saved groups to groups.json
+2025-08-31 12:13:16,350 INFO Updated group 5 location to (379.00,1170.00)
+2025-08-31 12:13:17,303 INFO Saved groups to groups.json
+2025-08-31 12:13:17,308 INFO Updated group 5 location to (379.00,1170.00)
+2025-08-31 12:13:22,587 INFO Saved groups to groups.json
+2025-08-31 12:13:22,591 INFO Updated group 5 location to (2447.91,1834.33)
+2025-08-31 12:13:24,897 INFO Saved groups to groups.json
+2025-08-31 12:13:24,901 INFO Updated group 2 location to (761.01,3384.07)
+2025-08-31 12:13:27,491 INFO Saved groups to groups.json
+2025-08-31 12:13:27,494 INFO Updated group 5 location to (2447.91,1834.33)
+2025-08-31 12:13:30,054 INFO Saved groups to groups.json
+2025-08-31 12:13:30,058 INFO Updated group 4 location to (223.00,887.00)
+2025-08-31 12:13:35,395 INFO Saved groups to groups.json
+2025-08-31 12:13:35,402 INFO Updated group 4 location to (223.00,887.00)
+2025-08-31 12:13:40,917 INFO Saved groups to groups.json
+2025-08-31 12:13:40,925 INFO Updated group 4 location to (223.00,887.00)
+2025-08-31 12:13:41,870 INFO Saved groups to groups.json
+2025-08-31 12:13:41,872 INFO Updated group 1 location to (314.49,2103.47)
+2025-08-31 12:13:50,808 INFO Saved groups to groups.json
+2025-08-31 12:13:50,810 INFO Moved member 1 in group 4 to local (0.2408,0.4306)
+2025-08-31 12:13:51,614 INFO Saved groups to groups.json
+2025-08-31 12:13:51,619 INFO Updated group 4 location to (223.00,887.00)

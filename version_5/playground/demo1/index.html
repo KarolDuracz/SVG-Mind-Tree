@@ -1,0 +1,611 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Token Vector Animator — Groups & Sequences (full)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    :root { --left-w:320px; --right-w:360px; --accent:#87CEEB; }
+    html,body { height:100%; margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial; }
+    body { display:flex; height:100vh; }
+    #sidebar { flex:0 0 var(--left-w); width:var(--left-w); min-width:var(--left-w); border-right:1px solid #eee; padding:12px; box-sizing:border-box; overflow:auto; }
+    #main { flex:1; display:flex; flex-direction:column; }
+    #topbar { height:48px; display:flex; align-items:center; gap:8px; padding:8px; border-bottom:1px solid #eee; background:#fff; }
+    .tabbtn { padding:6px 10px; cursor:pointer; border-radius:6px; border:1px solid transparent; background:transparent; }
+    .tabbtn.active { background:#f5f5f5; border-color:#ddd; }
+    #canvasArea { display:flex; gap:12px; flex:1; }
+    #center { flex:1; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; padding:12px; box-sizing:border-box; position:relative; }
+    #rightpanel { width:var(--right-w); border-left:1px solid #eee; padding:12px; box-sizing:border-box; overflow:auto; }
+    textarea { width:100%; height:140px; box-sizing:border-box; font-family:monospace; font-size:13px; white-space:pre; }
+    button { padding:8px 10px; font-size:13px; cursor:pointer; }
+    canvas { background:white; border:1px solid #ddd; box-shadow:0 2px 6px rgba(0,0,0,0.03); display:block; }
+    #worldCanvas { width:100%; height:calc(100vh - 200px); cursor:grab; display:block; }
+    .small { font-size:12px; color:#444; }
+    select { width:100%; }
+    #log { margin-top:8px; font-family:monospace; font-size:12px; height:120px; overflow:auto; background:#fafafa; border:1px solid #eee; padding:8px; white-space:pre-wrap; }
+    #groupList { margin-top:8px; max-height:160px; overflow:auto; border:1px solid #eee; padding:6px; }
+    .groupRow { padding:6px; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .info { font-family:monospace; font-size:12px; color:#333; background:#fff; padding:6px; border:1px solid #eee; }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <h3>Token Animator</h3>
+    <label>Enter text / code</label>
+    <textarea id="txt" placeholder="Type text here..."></textarea>
+
+    <div style="margin-top:8px;">
+      <button id="btnTokenize">Tokenize & Save</button>
+      <button id="btnPlay">Play</button>
+      <button id="btnStop">Stop</button>
+      <button id="btnClear">Clear Saved</button>
+    </div>
+
+    <div style="margin-top:8px;">
+      <label>Saved prompts</label>
+      <select id="promptList" size="6"></select>
+    </div>
+
+    <div style="margin-top:8px;">
+      <button id="btnCreateGroup">Create Group</button>
+      <button id="btnClearAllGroups" style="margin-left:8px; background:#f66; color:#fff;">Clear All Groups</button>
+      <label style="display:block; margin-top:6px;">Groups</label>
+      <div id="groupList"></div>
+    </div>
+
+    <div style="margin-top:8px;">
+      <strong>Sequence Builder</strong>
+      <div style="margin-top:6px;">
+        <button id="btnSeqAdd">Add Selected Group</button>
+        <button id="btnSeqClear">Clear Sequence</button>
+        <button id="btnSeqPlay">Play Sequence</button>
+      </div>
+      <div id="seqList" class="small" style="margin-top:6px;">[empty]</div>
+    </div>
+
+    <div style="margin-top:8px;">
+      <label>Log</label>
+      <div id="log">Ready.</div>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <button class="tabbtn active" id="tabCanvas">Canvas</button>
+      <button class="tabbtn" id="tabWorld">World</button>
+
+      <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+        <div class="small">Tokens: <span id="tokenCount">0</span></div>
+      </div>
+    </div>
+
+    <div id="canvasArea">
+      <div id="center">
+        <div id="canvasContainer">
+          <canvas id="mainCanvas" width="1000" height="650"></canvas>
+        </div>
+
+        <div style="margin-top:8px;">
+          <div id="details" class="info">Details: select a prompt, create a group, add prompts to groups, then switch to World to move groups and play sequences.</div>
+        </div>
+      </div>
+
+      <div id="rightpanel">
+        <h4>Generated text</h4>
+        <div id="generatedText" style="height:160px; overflow:auto; border:1px solid #eee; padding:8px; font-family:monospace;"></div>
+
+        <div style="margin-top:12px;">
+          <button id="btnAddToGroup">Add selected prompt to group</button>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label>Selected group</label>
+          <select id="selGroup"></select>
+          <div style="margin-top:8px;">
+            <button id="btnHighlightSelected">Highlight selected</button>
+            <button id="btnPlayGroup">Play Group</button>
+            <div class="small" style="margin-top:6px;">Highlighted Group ID: <span id="highlightedId">none</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(async function(){
+  // DOM
+  const txt = document.getElementById('txt');
+  const btnTokenize = document.getElementById('btnTokenize');
+  const btnPlay = document.getElementById('btnPlay');
+  const btnStop = document.getElementById('btnStop');
+  const btnClear = document.getElementById('btnClear');
+  const promptList = document.getElementById('promptList');
+  const tokenCount = document.getElementById('tokenCount');
+  const logEl = document.getElementById('log');
+  const generatedText = document.getElementById('generatedText');
+  const btnCreateGroup = document.getElementById('btnCreateGroup');
+  const btnClearAllGroups = document.getElementById('btnClearAllGroups');
+  const groupListDiv = document.getElementById('groupList');
+  const btnAddToGroup = document.getElementById('btnAddToGroup');
+  const selGroup = document.getElementById('selGroup');
+  const btnHighlightSelected = document.getElementById('btnHighlightSelected');
+  const btnPlayGroup = document.getElementById('btnPlayGroup');
+  const highlightedIdEl = document.getElementById('highlightedId');
+  const btnSeqAdd = document.getElementById('btnSeqAdd');
+  const btnSeqClear = document.getElementById('btnSeqClear');
+  const btnSeqPlay = document.getElementById('btnSeqPlay');
+  const seqList = document.getElementById('seqList');
+  const mainCanvas = document.getElementById('mainCanvas');
+  const mainCtx = mainCanvas.getContext('2d');
+  const tabCanvas = document.getElementById('tabCanvas');
+  const tabWorld = document.getElementById('tabWorld');
+  const canvasContainer = document.getElementById('canvasContainer');
+  const details = document.getElementById('details');
+
+  // Client state
+  const sequences = new Map(); // prompt_key -> { text, tokens, centroid }
+  let currentSeqKey = null;
+  let playing = false;
+  let stopRequested = false;
+
+  // World & groups
+  let worldCanvas = null, worldCtx = null;
+  let groups = [];                     // server-provided groups array
+  let groupMembers = new Map();        // gid -> [members]
+  const WORLD_CANVAS_W = 2000, WORLD_CANVAS_H = 1200;
+  let worldView = { offsetX:0, offsetY:0, scale:0.15 };
+  const worldState = { dragging:false, lastX:0, lastY:0, panMode:false, memberDragging:false, memberDrag:null, memberOffsetX:0, memberOffsetY:0, groupDragging:false, groupDrag:null };
+  let highlightedGroupId = null; // id of group highlighted from selGroup / right-panel
+
+  // Sequence builder state
+  const seqGroups = [];
+
+  // helpers
+  function log(...args){ const s = args.map(a => typeof a==='object'?JSON.stringify(a):String(a)).join(' '); console.log(s); logEl.textContent += '\n' + s; logEl.scrollTop = logEl.scrollHeight; }
+  async function postJSON(url, body){ const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}); if (!r.ok) { const t = await r.text().catch(()=>r.statusText); throw new Error(`${url} ${r.status}: ${t}`); } return r.json(); }
+  async function getJSON(url){ const r = await fetch(url); if (!r.ok) { const t = await r.text().catch(()=>r.statusText); throw new Error(`${url} ${r.status}: ${t}`); } return r.json(); }
+  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+  // TAB in textarea
+  txt.addEventListener('keydown', (e)=>{ if (e.key === 'Tab'){ e.preventDefault(); const start = txt.selectionStart, end = txt.selectionEnd; const v = txt.value; txt.value = v.slice(0,start) + '\t' + v.slice(end); txt.selectionStart = txt.selectionEnd = start+1; } });
+
+  // ---------- tokenization ----------
+  btnTokenize.addEventListener('click', async ()=>{
+    const text = txt.value || '';
+    if (!text.trim()){ alert('Enter text'); return; }
+    try{
+      log('Tokenizing...');
+      const res = await postJSON('/tokenize', { text });
+      sequences.set(res.prompt_key, { text, tokens: res.tokens, centroid: res.centroid });
+      if (![...promptList.options].some(o=>o.value===res.prompt_key)){
+        const opt = document.createElement('option'); opt.value = res.prompt_key; opt.textContent = res.text ? res.text.slice(0,80) : res.prompt_key; promptList.appendChild(opt);
+      }
+      promptList.value = res.prompt_key;
+      currentSeqKey = res.prompt_key;
+      tokenCount.textContent = res.count;
+      log('Saved prompt', res.prompt_key, 'tokens=', res.count);
+      drawMainForKey(res.prompt_key);
+      await refreshGroupsAndMembers();
+    }catch(err){ log('Tokenize error', err.message||err); }
+  });
+
+  // draw main canvas tokens
+  function drawMainForKey(key){
+    mainCtx.clearRect(0,0,mainCanvas.width, mainCanvas.height);
+    const seq = sequences.get(key);
+    if (!seq || !seq.tokens) return;
+    drawTokensOnContext(mainCtx, seq.tokens, mainCanvas.width, mainCanvas.height);
+  }
+  function drawTokensOnContext(ctx, tokens, w, h){
+    let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
+    tokens.forEach(t=>{ minX=Math.min(minX,t.x); maxX=Math.max(maxX,t.x); minY=Math.min(minY,t.y); maxY=Math.max(maxY,t.y); });
+    if (!isFinite(minX)){ minX=0; maxX=1; minY=0; maxY=1; }
+    const worldW = (maxX-minX)||1, worldH=(maxY-minY)||1;
+    const scale = Math.min((w - 80)/worldW, (h - 80)/worldH);
+    const tx = w/2 - ((minX + maxX)/2) * scale;
+    const ty = h/2 - ((minY + maxY)/2) * scale;
+    function w2c(x,y){ return { x: x*scale + tx, y: y*scale + ty }; }
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+    tokens.forEach(t=>{
+      const p = w2c(t.x,t.y);
+      ctx.beginPath(); ctx.fillStyle = '--accent'; ctx.fillStyle = '#87CEEB'; ctx.arc(p.x,p.y,8,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#000'; ctx.font='11px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      const short = (t.token_text||'').replace(/\s+/g,' '); const label = short && short.length<=6 ? short : (short.length>6?short.slice(0,6)+'…':String(t.token_id));
+      ctx.fillText(label, p.x, p.y);
+    });
+  }
+
+  // playback tokens (used by group and sequence play)
+  async function playTokens(tokens){
+    if (!tokens || tokens.length === 0) return;
+    playing = true; stopRequested = false; generatedText.textContent = '';
+    // simple playback: append token_text into generatedText with small delay, highlight in mainCanvas if possible
+    for (let i=0;i<tokens.length;i++){
+      if (stopRequested) break;
+      const t = tokens[i];
+      if (t.token_text) generatedText.textContent += t.token_text;
+      // try to highlight token's position on mainCanvas if tokenized prompt exists
+      // We'll just flash a small dot at approximate position in mainCanvas
+      mainCtx.save();
+      mainCtx.beginPath();
+      // position map from normalized to canvas
+      const x = (t.x) * mainCanvas.width;
+      const y = (t.y) * mainCanvas.height;
+      mainCtx.fillStyle = '#FFD700';
+      mainCtx.arc(x % mainCanvas.width, y % mainCanvas.height, 6, 0, Math.PI*2);
+      mainCtx.fill();
+      mainCtx.restore();
+      await sleep(80);
+      // redraw the last selected prompt if any
+      if (currentSeqKey) drawMainForKey(currentSeqKey);
+    }
+    playing = false; stopRequested = false; log('Playback finished');
+  }
+
+  btnPlay.addEventListener('click', async ()=>{
+    if (!currentSeqKey){ alert('Select saved prompt'); return; }
+    const seq = sequences.get(currentSeqKey);
+    if (!seq) return;
+    await playTokens(seq.tokens);
+  });
+  btnStop.addEventListener('click', ()=>{ stopRequested=true; playing=false; });
+
+  btnClear.addEventListener('click', ()=>{ sequences.clear(); promptList.innerHTML=''; currentSeqKey=null; tokenCount.textContent='0'; generatedText.textContent=''; mainCtx.clearRect(0,0,mainCanvas.width, mainCanvas.height); log('Cleared sequences'); });
+
+  promptList.addEventListener('change', ()=>{ const k = promptList.value; currentSeqKey = k; if (k) { const s = sequences.get(k); tokenCount.textContent = s ? s.tokens.length : '0'; drawMainForKey(k); } });
+
+  // ---------- groups & world ----------
+  function ensureWorldCanvas(){
+    if (worldCanvas) return;
+    worldCanvas = document.createElement('canvas');
+    worldCanvas.id = 'worldCanvas';
+    worldCanvas.width = WORLD_CANVAS_W;
+    worldCanvas.height = WORLD_CANVAS_H;
+    worldCanvas.style.width = '100%';
+    worldCanvas.style.height = 'auto';
+    worldCtx = worldCanvas.getContext('2d');
+    worldCanvas.addEventListener('mousedown', worldMouseDown);
+    window.addEventListener('mouseup', worldMouseUp);
+    worldCanvas.addEventListener('mousemove', worldMouseMove);
+    worldCanvas.addEventListener('wheel', worldWheel, { passive:false });
+    worldCanvas.style.cursor = 'grab';
+  }
+
+  async function refreshGroupsAndMembers(){
+    try{
+      const gdata = await getJSON('/groups');
+      groups = gdata.groups || [];
+      selGroup.innerHTML = ''; groupListDiv.innerHTML = '';
+      for (const g of groups){
+        const opt = document.createElement('option'); opt.value = String(g.id); opt.textContent = `${g.name} (#${g.id})`; selGroup.appendChild(opt);
+        const row = document.createElement('div'); row.className = 'groupRow';
+        row.innerHTML = `<div><strong>${g.name}</strong><div class="small">id:${g.id} x:${Math.round(g.world_x)} y:${Math.round(g.world_y)}</div></div>
+          <div><button data-id="${g.id}" class="btnView">View</button></div>`;
+        groupListDiv.appendChild(row);
+      }
+      [...groupListDiv.querySelectorAll('.btnView')].forEach(btn => btn.addEventListener('click', ()=> focusGroupOnWorld(Number(btn.getAttribute('data-id')))));
+      // fetch members
+      const memberPromises = groups.map(g => fetch(`/groups/${g.id}/members`).then(r => r.ok ? r.json() : []).catch(()=>[]));
+      const membersArray = await Promise.all(memberPromises);
+      groupMembers.clear();
+      for (let i=0;i<groups.length;i++) groupMembers.set(groups[i].id, membersArray[i] || []);
+      log('Groups refreshed:', groups.length, 'members cached');
+      if (isTabActive(tabWorld)) drawWorld();
+    }catch(err){ log('refreshGroups error', err.message || err); }
+  }
+
+  btnCreateGroup.addEventListener('click', async ()=>{
+    const name = prompt('Group name', 'Group');
+    if (!name) return;
+    try{
+      const wx = Math.round(Math.random() * 2000 + 200);
+      const wy = Math.round(Math.random() * 1000 + 200);
+      const g = await postJSON('/groups', { name, world_x: wx, world_y: wy });
+      log('Created group', g.id);
+      await refreshGroupsAndMembers();
+    }catch(err){ log('create group error', err.message || err); }
+  });
+
+  btnClearAllGroups.addEventListener('click', async ()=>{
+    if (!confirm('Delete ALL groups? This cannot be undone.')) return;
+    try{
+      const res = await postJSON('/groups/clear', {});
+      log('Cleared all groups', res);
+      await refreshGroupsAndMembers();
+      highlightedGroupId = null; highlightedIdEl.textContent = 'none';
+      if (worldCanvas) drawWorld();
+    }catch(err){ log('clear all groups error', err.message || err); }
+  });
+
+  btnAddToGroup.addEventListener('click', async ()=>{
+    const key = promptList.value;
+    const gid = Number(selGroup.value);
+    if (!key){ alert('Select a prompt'); return; }
+    if (!gid){ alert('Select a group'); return; }
+    const seq = sequences.get(key);
+    if (!seq){ alert('Sequence not found'); return; }
+    try{
+      const res = await postJSON(`/groups/${gid}/add`, { prompt_key: key, centroid: seq.centroid });
+      log('Added to group', res);
+      await refreshGroupsAndMembers();
+      if (isTabActive(tabWorld)) drawWorld();
+    }catch(err){ log('addToGroup error', err.message || err); }
+  });
+
+  // selGroup onchange -> highlight and focus
+  selGroup.addEventListener('change', ()=>{
+    const gid = Number(selGroup.value);
+    if (!gid){ highlightedGroupId = null; highlightedIdEl.textContent='none'; return; }
+    highlightedGroupId = gid;
+    highlightedIdEl.textContent = String(gid);
+    // if world canvas exists, focus and draw highlight
+    ensureWorldCanvas();
+    canvasContainer.innerHTML = ''; canvasContainer.appendChild(worldCanvas);
+    focusGroupOnWorld(gid);
+    drawWorld();
+  });
+
+  btnHighlightSelected.addEventListener('click', ()=>{
+    const gid = Number(selGroup.value);
+    if (!gid){ alert('Select a group'); return; }
+    highlightedGroupId = gid;
+    highlightedIdEl.textContent = String(gid);
+    ensureWorldCanvas(); canvasContainer.innerHTML = ''; canvasContainer.appendChild(worldCanvas);
+    focusGroupOnWorld(gid); drawWorld();
+  });
+
+  btnPlayGroup.addEventListener('click', async ()=>{
+    const gid = Number(selGroup.value);
+    if (!gid){ alert('Select a group'); return; }
+    await playGroupById(gid);
+  });
+
+  async function playGroupById(gid){
+    const members = groupMembers.get(gid) || [];
+    if (members.length === 0){ alert('Group has no members'); return; }
+    const allTokens = [];
+    for (const m of members){
+      const pk = m.prompt_key;
+      const seq = sequences.get(pk);
+      if (!seq){
+        alert('Missing tokenized prompt for some group members. Tokenize those prompts first.');
+        return;
+      }
+      for (const t of seq.tokens) allTokens.push(Object.assign({}, t));
+    }
+    // ensure canvas view and play
+    tabCanvas.click();
+    await playTokens(allTokens);
+  }
+
+  // Sequence builder
+  function addGroupToSequence(gid){ seqGroups.push(gid); renderSeqList(); }
+  function clearSequence(){ seqGroups.length = 0; renderSeqList(); }
+  function renderSeqList(){ seqList.textContent = seqGroups.length ? seqGroups.map((g,i)=>`${i+1}: #${g}`).join(' → ') : '[empty]'; }
+  btnSeqAdd.addEventListener('click', ()=>{ const g = Number(selGroup.value); if (!g){ alert('Select a group'); return; } addGroupToSequence(g); });
+  btnSeqClear.addEventListener('click', ()=>{ clearSequence(); });
+  btnSeqPlay.addEventListener('click', async ()=>{
+    if (seqGroups.length === 0){ alert('Sequence empty'); return; }
+    // build tokens: for each group in order, append their members' tokens
+    const allTokens = [];
+    for (const gid of seqGroups){
+      const members = groupMembers.get(gid) || [];
+      for (const m of members){
+        const seq = sequences.get(m.prompt_key);
+        if (!seq){ alert(`Missing tokenized prompt ${m.prompt_key}. Tokenize it before playing.`); return; }
+        for (const t of seq.tokens) allTokens.push(Object.assign({}, t));
+      }
+    }
+    // switch to canvas and play
+    tabCanvas.click();
+    generatedText.textContent = '';
+    await playTokens(allTokens);
+  });
+
+  // ---------- world rendering / input ----------
+  function drawWorld(){
+    if (!worldCtx) return;
+    worldCtx.clearRect(0,0,worldCanvas.width, worldCanvas.height);
+    worldCtx.fillStyle = '#fff'; worldCtx.fillRect(0,0,worldCanvas.width, worldCanvas.height);
+    for (const g of groups){
+      const top = worldToScreen(g.world_x, g.world_y);
+      const gw = g.w * worldView.scale;
+      const gh = g.h * worldView.scale;
+      // group box background
+      worldCtx.fillStyle = '#f8f8ff';
+      worldCtx.fillRect(top.x, top.y, gw, gh);
+      // highlight if selected
+      if (highlightedGroupId === g.id){
+        worldCtx.strokeStyle = '#FFD700';
+        worldCtx.lineWidth = 4;
+      } else {
+        worldCtx.strokeStyle = '#ccc';
+        worldCtx.lineWidth = 1;
+      }
+      worldCtx.strokeRect(top.x, top.y, gw, gh);
+      worldCtx.fillStyle = '#000'; worldCtx.font = '14px sans-serif';
+      worldCtx.fillText(`${g.name} (#${g.id})`, top.x + 8, top.y + 18);
+      const members = groupMembers.get(g.id) || [];
+      for (const m of members){
+        const px = top.x + m.local_x * gw;
+        const py = top.y + m.local_y * gh;
+        worldCtx.beginPath(); worldCtx.fillStyle = '#87CEEB'; worldCtx.arc(px, py, 6, 0, Math.PI*2); worldCtx.fill();
+        worldCtx.fillStyle = '#000'; worldCtx.font = '10px monospace'; worldCtx.textAlign = 'center'; worldCtx.fillText(String(m.member_id), px, py - 10);
+      }
+    }
+  }
+
+  function worldToScreen(wx, wy){ return { x: (wx + worldView.offsetX) * worldView.scale, y: (wy + worldView.offsetY) * worldView.scale }; }
+  function screenToWorld(sx, sy){ return { x: sx / worldView.scale - worldView.offsetX, y: sy / worldView.scale - worldView.offsetY }; }
+
+  function focusGroupOnWorld(gid){
+    const g = groups.find(x=>x.id===gid); if (!g) return;
+    // center the view around the group
+    worldView.offsetX = -g.world_x + (worldCanvas.width / worldView.scale) / 4;
+    worldView.offsetY = -g.world_y + (worldCanvas.height / worldView.scale) / 4;
+    drawWorld();
+  }
+
+  // world interaction:
+  function worldMouseDown(ev){
+    if (!worldCanvas) return;
+    const rect = worldCanvas.getBoundingClientRect();
+    const sx = ev.clientX - rect.left, sy = ev.clientY - rect.top;
+
+    // If left-click and not in panMode: check group/member interactions first
+    if (ev.button === 0 && !worldState.panMode){
+      for (const g of groups){
+        const top = worldToScreen(g.world_x, g.world_y);
+        const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+        if (sx >= top.x && sx <= top.x + gw && sy >= top.y && sy <= top.y + gh){
+          // clicked inside group's box -> select it
+          highlightedGroupId = g.id;
+          highlightedIdEl.textContent = String(g.id);
+          selGroup.value = String(g.id);
+
+          // check member hit
+          const members = groupMembers.get(g.id) || [];
+          let best=null, bd=Infinity;
+          for (const m of members){
+            const px = top.x + m.local_x * gw, py = top.y + m.local_y * gh;
+            const d2 = (px - sx)*(px - sx) + (py - sy)*(py - sy);
+            if (d2 < bd){ bd=d2; best=m; }
+          }
+          if (best && bd <= 20*20){
+            // begin dragging member
+            worldState.memberDragging = true;
+            worldState.memberDrag = { gid: g.id, member: best };
+            worldState.memberOffsetX = sx - (top.x + best.local_x * gw);
+            worldState.memberOffsetY = sy - (top.y + best.local_y * gh);
+            log('Start dragging member', best.member_id, 'group', g.id);
+            return;
+          }
+
+          // no member -> drag this group only
+          worldState.groupDragging = true;
+          worldState.groupDrag = { gid: g.id, startSx: sx, startSy: sy, startWx: g.world_x, startWy: g.world_y };
+          worldCanvas.style.cursor = 'grabbing';
+          log('Start dragging group', g.id);
+          return;
+        }
+      }
+    }
+
+    // fallback: pan if middle/right button or panMode
+    if (ev.button === 1 || ev.button === 2 || worldState.panMode){
+      worldState.dragging = true; worldState.lastX = sx; worldState.lastY = sy; worldCanvas.style.cursor='grabbing'; return;
+    }
+  }
+
+  function worldMouseUp(ev){
+    if (!worldCanvas) return;
+    const rect = worldCanvas.getBoundingClientRect();
+    const sx = ev.clientX - rect.left, sy = ev.clientY - rect.top;
+
+    if (worldState.memberDragging && worldState.memberDrag){
+      const { gid, member } = worldState.memberDrag;
+      const g = groups.find(x=>x.id===gid);
+      if (!g) { worldState.memberDragging=false; worldState.memberDrag=null; return; }
+      const top = worldToScreen(g.world_x, g.world_y);
+      const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+      const localX = Math.max(0, Math.min(1, (sx - top.x - worldState.memberOffsetX) / gw));
+      const localY = Math.max(0, Math.min(1, (sy - top.y - worldState.memberOffsetY) / gh));
+      postJSON(`/groups/${gid}/move`, { member_id: member.member_id, local_x: localX, local_y: localY })
+        .then(res => { log('Moved persisted', res); return refreshGroupsAndMembers(); })
+        .then(()=> { if (isTabActive(tabWorld)) drawWorld(); })
+        .catch(err => log('move persist error', err.message || err));
+    }
+
+    if (worldState.groupDragging && worldState.groupDrag){
+      const { gid } = worldState.groupDrag;
+      const g = groups.find(x=>x.id===gid);
+      if (g){
+        postJSON(`/groups/${gid}/update_location`, { world_x: g.world_x, world_y: g.world_y })
+          .then(res => { log('Group location persisted', res); return refreshGroupsAndMembers(); })
+          .then(()=> { if (isTabActive(tabWorld)) drawWorld(); })
+          .catch(err => log('persist group location error', err.message || err));
+      }
+    }
+
+    if (worldState.dragging){
+      worldState.dragging=false; worldCanvas.style.cursor='grab';
+    }
+    worldState.memberDragging=false; worldState.memberDrag=null;
+    worldState.groupDragging=false; worldState.groupDrag=null;
+  }
+
+  async function worldMouseMove(ev){
+    if (!worldCanvas) return;
+    const rect = worldCanvas.getBoundingClientRect();
+    const sx = ev.clientX - rect.left, sy = ev.clientY - rect.top;
+    if (worldState.dragging){
+      const dx = (sx - worldState.lastX) / worldView.scale;
+      const dy = (sy - worldState.lastY) / worldView.scale;
+      worldView.offsetX += dx; worldView.offsetY += dy;
+      worldState.lastX = sx; worldState.lastY = sy;
+      await drawWorld(); return;
+    }
+    if (worldState.memberDragging && worldState.memberDrag){
+      const g = groups.find(x=>x.id===worldState.memberDrag.gid);
+      if (!g) return;
+      const top = worldToScreen(g.world_x, g.world_y); const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+      const px = sx - worldState.memberOffsetX, py = sy - worldState.memberOffsetY;
+      await drawWorld();
+      worldCtx.beginPath(); worldCtx.fillStyle='#FFD700'; worldCtx.arc(px, py, 8, 0, Math.PI*2); worldCtx.fill();
+      return;
+    }
+    if (worldState.groupDragging && worldState.groupDrag){
+      const gd = worldState.groupDrag;
+      const dx = sx - gd.startSx; const dy = sy - gd.startSy;
+      const dx_world = dx / worldView.scale; const dy_world = dy / worldView.scale;
+      const g = groups.find(x=>x.id===gd.gid);
+      if (!g) return;
+      g.world_x = gd.startWx + dx_world;
+      g.world_y = gd.startWy + dy_world;
+      await drawWorld();
+      const top = worldToScreen(g.world_x, g.world_y); const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+      worldCtx.strokeStyle = '#FA8072'; worldCtx.lineWidth = 2; worldCtx.strokeRect(top.x, top.y, gw, gh);
+      return;
+    }
+    // hover info
+    let found=false;
+    for (const g of groups){
+      const top = worldToScreen(g.world_x, g.world_y); const gw = g.w * worldView.scale, gh = g.h * worldView.scale;
+      if (sx >= top.x && sx <= top.x + gw && sy >= top.y && sy <= top.y + gh){
+        const members = groupMembers.get(g.id) || [];
+        for (const m of members){
+          const px = top.x + m.local_x * gw, py = top.y + m.local_y * gh;
+          const d2 = (px - sx)*(px - sx) + (py - sy)*(py - sy);
+          if (d2 <= 12*12){
+            details.textContent = `Group ${g.name} member ${m.member_id}\nprompt_key: ${m.prompt_key}\nlocal: ${m.local_x.toFixed(3)}, ${m.local_y.toFixed(3)}`;
+            found=true; break;
+          }
+        }
+      }
+      if (found) break;
+    }
+    if (!found) details.textContent='World: click a group to select, drag the rect (left button) to move only that group. Use middle/right or Pan mode to pan.';
+  }
+
+  function worldWheel(ev){ ev.preventDefault(); const delta = Math.sign(ev.deltaY); if (delta>0) worldView.scale /= 1.12; else worldView.scale *= 1.12; if (isTabActive(tabWorld)) drawWorld(); }
+
+  // ---------- tabs ----------
+  function clearActiveTabs(){ tabCanvas.classList.remove('active'); tabWorld.classList.remove('active'); }
+  function isTabActive(tab){ return tab.classList.contains('active'); }
+
+  tabCanvas.addEventListener('click', ()=>{ clearActiveTabs(); tabCanvas.classList.add('active'); canvasContainer.innerHTML=''; canvasContainer.appendChild(mainCanvas); if (currentSeqKey) drawMainForKey(currentSeqKey); });
+  tabWorld.addEventListener('click', async ()=>{ clearActiveTabs(); tabWorld.classList.add('active'); ensureWorldCanvas(); canvasContainer.innerHTML=''; canvasContainer.appendChild(worldCanvas); await refreshGroupsAndMembers(); drawWorld(); });
+
+  // init
+  mainCtx.fillStyle='#fff'; mainCtx.fillRect(0,0,mainCanvas.width, mainCanvas.height);
+  txt.value = `// Example\nfunction add(a,b){ return a+b; }\n// Use tokenize to save prompts. Create groups and add prompts to groups.`;
+
+  await refreshGroupsAndMembers();
+
+  // expose debug for convenience
+  window.__debug = { sequences, groups, groupMembers };
+
+})();
+</script>
+</body>
+</html>

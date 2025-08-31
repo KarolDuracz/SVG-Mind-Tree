@@ -1,0 +1,145 @@
+{
+  "next_id": 7,
+  "groups": [
+    {
+      "id": 1,
+      "name": "Group",
+      "world_x": 314.49283926105613,
+      "world_y": 2103.465506982546,
+      "w": 1100,
+      "h": 700,
+      "members": [
+        {
+          "member_id": 1,
+          "prompt_key": "e27537c44b26511a3e5f0d009cfd4b43d7a2c9c03c3abb12ef1adf31df6a131b",
+          "local_x": 0.47249709999999984,
+          "local_y": 0.5167837,
+          "centroid": {
+            "x": 0.4724971,
+            "y": 0.5167837
+          }
+        },
+        {
+          "member_id": 2,
+          "prompt_key": "e27537c44b26511a3e5f0d009cfd4b43d7a2c9c03c3abb12ef1adf31df6a131b",
+          "local_x": 0.4724971,
+          "local_y": 0.5167837,
+          "centroid": {
+            "x": 0.4724971,
+            "y": 0.5167837
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Group1",
+      "world_x": 761.0086619851688,
+      "world_y": 3384.070193430025,
+      "w": 1100,
+      "h": 700,
+      "members": [
+        {
+          "member_id": 1,
+          "prompt_key": "e27537c44b26511a3e5f0d009cfd4b43d7a2c9c03c3abb12ef1adf31df6a131b",
+          "local_x": 0.4724971,
+          "local_y": 0.5167837,
+          "centroid": {
+            "x": 0.4724971,
+            "y": 0.5167837
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Group3",
+      "world_x": 2649.310474572694,
+      "world_y": 3393.401487353439,
+      "w": 1100,
+      "h": 700,
+      "members": [
+        {
+          "member_id": 1,
+          "prompt_key": "04f219ad9c5b78eb6086e960da40157cd693a33afebd178f623cf7e3eefb26f3",
+          "local_x": 0.4573515697986577,
+          "local_y": 0.4791043315436242,
+          "centroid": {
+            "x": 0.4573515697986577,
+            "y": 0.4791043315436242
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Group_python_serw",
+      "world_x": 222.99999999999932,
+      "world_y": 887.0,
+      "w": 1100,
+      "h": 700,
+      "members": [
+        {
+          "member_id": 1,
+          "prompt_key": "c5ac5d9d946f600cc5e71a892d9439e2f1c97e8e393e816fea95e6bc41a098c7",
+          "local_x": 0.24076773566569487,
+          "local_y": 0.430575801749271,
+          "centroid": {
+            "x": 0.48491610342612423,
+            "y": 0.476499087825023
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Group_end_comments",
+      "world_x": 2447.907920310982,
+      "world_y": 1834.328231292517,
+      "w": 1100,
+      "h": 700,
+      "members": [
+        {
+          "member_id": 1,
+          "prompt_key": "169b019bd526f9a0ab169ec2e5ae4c774795ba5684bc2f3904031c49afcd278f",
+          "local_x": 0.4005791566666667,
+          "local_y": 0.5042084,
+          "centroid": {
+            "x": 0.4005791566666667,
+            "y": 0.5042084
+          }
+        },
+        {
+          "member_id": 2,
+          "prompt_key": "169b019bd526f9a0ab169ec2e5ae4c774795ba5684bc2f3904031c49afcd278f",
+          "local_x": 0.4005791566666667,
+          "local_y": 0.5042084,
+          "centroid": {
+            "x": 0.4005791566666667,
+            "y": 0.5042084
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "write fun",
+      "world_x": 3380.54130223518,
+      "world_y": 1560.3387998056367,
+      "w": 1100,
+      "h": 700,
+      "members": [
+        {
+          "member_id": 1,
+          "prompt_key": "a31eb6d742ec98d1be3c52a6bd06068b8331c532bc28048b000317ec228011ae",
+          "local_x": 0.5599113142857143,
+          "local_y": 0.5105077285714286,
+          "centroid": {
+            "x": 0.5599113142857143,
+            "y": 0.5105077285714286
+          }
+        }
+      ]
+    }
+  ]
+}
