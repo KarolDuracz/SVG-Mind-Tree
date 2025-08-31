@@ -38,8 +38,8 @@ Ok, maybe I'll explain what's going on in more detail
 3. Enter one line of text, e.g., "// add new function" or something easy
 4. Follow steps 1-6 from this image: save it, create a group, and play the sequence once to see the text in the top right field where it generates the text
 5. It should print "// add new function" on the right when you click the button marked (6) in the "Play sequence" image
-6. Below, you'll see something like this
-1: #9
+6. Below "play sequence" button, you'll see something like this
+(1: #9)
 
 7. Return to the prompt window. Delete the text and enter another one, e.g.,
 function(a,b)
@@ -48,7 +48,7 @@ return a + b;
 }
 8. And again, save it, create a group, and follow steps 1-6.
 9. You should now see the sequence when you activate play sequence:
-1: #9 → 2: #10
+(1: #9) → (2: #10)
 
 and so on
 ```
