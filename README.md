@@ -1,3 +1,6 @@
+> [!WARNING]
+> This isn't ML/AI/AGI stuff. I just need it to build a simple application for generating football tactics. Synthetic data. The concept of AI/AGI is more than that. Perhaps it's "judgement" between moves, something that "sees" the future? It knows what will happen based on predictions. True AI is something deeper. (...) This part about the large language model is just my part of the learning. I am trying this approach because it gives greater opportunities to learn how the network works, each element. Instead of duplicating what is already there. You need to think about the problem again this way. This may be confusing so I'd like to clarify.
+
 > [!TIP]
 > Update: Go to the version_2 folder here. There's a more user-friendly version there. You can simply turn on drawing mode and draw on the canvas instead of clicking or sending terminal queries. The same goes for changing the target point for the entire path.
 
