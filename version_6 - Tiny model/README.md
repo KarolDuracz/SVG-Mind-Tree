@@ -15,7 +15,7 @@ https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_6%20-%20Tiny%20mo
 
 
 > [!NOTE]
-> But now Softmax at the end not working exactly like that. 
+> But now Softmax at the end not working exactly like that. I still need to test this. Initially, there should be a softmax at the end of each channel and a check to see if the calculations are for a given label, because all three channels should make predictions for the label at the end. This isn't working yet.
 
 
 <br /><br />
