@@ -15,7 +15,7 @@ https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_6%20-%20Tiny%20mo
 
 
 > [!NOTE]
-> But now Softmax at the end not working exactly like that. So the next time we try this, we'll have to take care of it and expand it so that it's a combination of these 3 channels.
+> But now Softmax at the end not working exactly like that. 
 
 
 <br /><br />
