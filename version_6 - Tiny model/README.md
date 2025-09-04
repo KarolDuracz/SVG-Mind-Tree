@@ -1,4 +1,8 @@
 > [!WARNING]
+> This is the code that needs to be fixed. TODO
+
+
+> [!WARNING]
 > I'm only posting this because I need to get this topic out of the way for now. It's unfinished, generated with a lot of help from GPT-5, and there are many things I don't understand right now. I haven't tested it thoroughly. But it looks like this setup might work. So far, from initial tests, it looks like something is working. Not optimally, but it's somewhat accurate. I've had too many breaks in learning all this. I need more time to digest it all. For now, I'm sharing the code, but it's a long way from the concepts of graphs, etc. THIS IS ALL FOR ANALYSIS, TESTING, AND LEARNING how to build custom networks from scratch, etc. (I WILL RETURN TO ANALYZE THIS AND LEARN MORE).
 
 FULL notebook with code is here
