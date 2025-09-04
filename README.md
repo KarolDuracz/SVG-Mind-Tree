@@ -326,5 +326,4 @@ There's no playback API. Like many other things, but you get the idea.
 
 <h3>Update logs</h3>
 28-08-2025 - Why am I adding the GPT 4o tokenizer to the exercises? The script itself isn't suitable for processing sequences like transfomer does, but it might be useful for writing scenarios using text fields. Perhaps, however, a 2D classifier for "Euclidean space" tokens could be created. For now, it's more for testing purposes to see if this approach makes sense. Apart from that, it is generally a script for writing more decision-making scenarios. Each node contains an X and Y location, a position on the canvas. Therefore, these graphs can be constructed in specific coordinate areas, either for the entire graph or for individual nodes. But for now, these are just ideas that need to be tested. This is a classification task, just a different type of data, graphs. But I don't want to get fixated on it either.
-<br /><br />
-30-08-2025 - Looking at this today, I wonder whether it is possible to train the vision and sequence model by generating this type of graphs at the beginning as input. Or something like that. hmm... But for now I'll leave it as it is.
+
