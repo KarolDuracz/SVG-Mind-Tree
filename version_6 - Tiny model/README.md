@@ -11,7 +11,13 @@ https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_6%20-%20Tiny%20mo
 (2) Channel 2 - predicts distance between tokens<br />
 (3) Channel 3 - sequence<br />
 - At the end of each channel, we can't simply combine them into one, because the distribution might show different tokens, i.e., concat them all together. I wanted each channel to have its own softmax layer to also check the calculations against the label. This part of the code requires checking, as does most of the code.<br />
-- Context length = 3
+- Context length = 3 <br /><br />
+
+
+> [!NOTE]
+> But now Softmax at the end not working exactly like that.
+
+
 <br /><br />
 <b>THE MAIN GOAL</b> WAS TO BUILD A SMALL MODEL THAT WOULD GENERATE THE SAME AS Andrej's MLP DEMO from this repo. ( https://github.com/EurekaLabsAI/mlp/tree/master ) because I've already been tinkering with the code there  ( https://github.com/KarolDuracz/scratchpad/tree/main/MachineLearning/ML%20with%20EurekaLabs/04-05-2025%20-%20EurekaLabs%20practice%20-%20MLP%20vs%20manual%20counting ) That's why I initially wanted to create something that would predict names in a similar way, that would learn from the same training dataset, create a vocab a - z + EOT token, and try to make similar predictions, i.e., generate names. Because it provides a good comparison. Benchmark.
 
