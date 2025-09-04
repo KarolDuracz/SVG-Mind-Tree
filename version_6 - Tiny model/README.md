@@ -21,6 +21,10 @@ https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/version_6%20-%20Tiny%20mo
 > [!NOTE]
 > But now Softmax at the end not working exactly like that. I still need to test this. Initially, there should be a softmax at the end of each channel and a check to see if the calculations are for a given label, because all three channels should make predictions for the label at the end. This isn't working yet.
 
+> [!NOTE]
+> That's why these pictures don't show the whole truth, because at the end it's the softmax that decides which channel has the best predictions, and it doesn't mix. This needs to be fix.
+
+
 
 <br /><br />
 <b>THE MAIN GOAL</b> WAS TO BUILD A SMALL MODEL THAT WOULD GENERATE THE SAME AS Andrej's MLP DEMO from this repo. ( https://github.com/EurekaLabsAI/mlp/tree/master ) because I've already been tinkering with the code there  ( https://github.com/KarolDuracz/scratchpad/tree/main/MachineLearning/ML%20with%20EurekaLabs/04-05-2025%20-%20EurekaLabs%20practice%20-%20MLP%20vs%20manual%20counting ) That's why I initially wanted to create something that would predict names in a similar way, that would learn from the same training dataset, create a vocab a - z + EOT token, and try to make similar predictions, i.e., generate names. Because it provides a good comparison. Benchmark.
