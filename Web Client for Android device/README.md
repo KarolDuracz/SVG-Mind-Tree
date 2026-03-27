@@ -1,3 +1,7 @@
+> [!NOTE]
+> This is just a test; I/O performance is terrible, heavy to the system with large numbers of queries. In this naive version, I can see all the logs, all the information in simple JSON format on disk and loaded in real time onto moving graphs. It would be better to do this with threads waiting for wake-up mechanisms, etc., but that's not the purpose of this demo. It's just to answer the question: can these patterns be encoded into graphs for some actions, or a sequence of actions they trigger? Instead of a mouse or keyboard, it's simply for testing in  free time. Just like gesture recognition, etc.
+
+
 # Flask Grid Demo — Development Build
 
 This project is a touch-driven 3×3 grid test app for Android browsers and desktop browsers. Runs on https://pypi.org/project/Flask/
@@ -54,7 +58,7 @@ Then open:
 
 localhost:5000/admin - here are full statistics about reaction time, communication between client and server
 <br /><br />
-localhost:5000/patterns - I write down sequences of numbers at the bottom, which means I write down what interests me the most, PATTERNS from the client who clicks on the tiles or moves them
+localhost:5000/patterns - It write down sequences of numbers at the bottom, which means It write down what interests me the most, PATTERNS from the client who clicks on the tiles or moves them
 
 ![dump](https://github.com/KarolDuracz/SVG-Mind-Tree/blob/main/Web%20Client%20for%20Android%20device/page%20admin%20and%20patterns.png?raw=true)
 
