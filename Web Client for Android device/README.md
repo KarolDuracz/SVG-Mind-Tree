@@ -47,6 +47,10 @@ pip install -r requirements.txt
 python app.py
 ```
 
+> [!IMPORTANT]
+> What I see is that after starting the server, you first need to go to localhost:5000/admin. This is the first thing the server needs to receive as a request. I've noticed that when you first open the client application, the real-time page refresh mechanism in the server-side /admin doesn't work. It only works correctly in the /admin > /chart > etc. sequence. So, first, after launching the application with the "python app.py" command, access the admin page to see the statistics, whether it's updating live, and whether the numbers are added as a string (sequence) at the bottom. It is supposed to refresh and update itself on the server side.
+
+
 Then open:
 
 - `http://YOUR_SERVER_IP:5000/`
