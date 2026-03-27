@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grid Admin</title>
+  <style>
+    :root {
+      --bg: #10131a;
+      --panel: #171b24;
+      --panel2: #1b2130;
+      --text: #e7edf8;
+      --muted: #9ea9bd;
+      --accent: #7dff8a;
+      --accent2: #ffe27a;
+      --danger: #ff7d7d;
+    }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    .wrap {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr;
+      gap: 12px;
+      padding: 12px;
+      box-sizing: border-box;
+      min-height: 100vh;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid #293142;
+      border-radius: 12px;
+      padding: 12px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    h1, h2 { margin: 0 0 10px 0; font-size: 18px; }
+    .meta { color: var(--muted); margin-bottom: 10px; font-size: 13px; }
+    #board {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #0f1218;
+      border-radius: 10px;
+    }
+    #preview {
+      width: 100%;
+      height: 220px;
+      display: block;
+      background: #fff;
+      border-radius: 10px;
+      margin-top: 12px;
+    }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .stack { display: grid; gap: 12px; }
+    .legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; margin-right: 4px; vertical-align: middle; }
+    .links a { color: var(--accent); text-decoration: none; margin-right: 10px; }
+    .links a:hover { text-decoration: underline; }
+    @media (max-width: 980px) {
+      .wrap { grid-template-columns: 1fr; }
+      #preview { height: 180px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card stack">
+    <div>
+      <h1>Live Grid</h1>
+      <div class="meta">The same 3×3 tile board, highlighted in real time</div>
+      <canvas id="board"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:#7dff8a"></span>pressed / held</span>
+        <span><span class="dot" style="background:#ffe27a"></span>moved</span>
+        <span><span class="dot" style="background:#ff7d7d"></span>released</span>
+      </div>
+    </div>
+
+    <div>
+      <h2>Latest PNG</h2>
+      <div class="meta">Compact board snapshot from the device</div>
+      <canvas id="preview"></canvas>
+    </div>
+  </div>
+
+  <div class="card stack">
+    <div class="links">
+      <a href="/">Client</a>
+      <a href="/charts">Charts</a>
+      <a href="/patterns">Patterns</a>
+    </div>
+    <div>
+      <h2>Statistics</h2>
+      <div class="meta">Push-updated with frames and tile events</div>
+      <pre id="stats">Loading…</pre>
+    </div>
+
+    <div>
+      <h2>Status</h2>
+      <div class="meta">Event stream</div>
+      <pre id="status">Connecting…</pre>
+    </div>
+
+    <div>
+      <h2>Recent events</h2>
+      <div class="meta">Press / hold / move / release log</div>
+      <pre id="events">(none)</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const boardCanvas = document.getElementById('board');
+  const boardCtx = boardCanvas.getContext('2d');
+  const previewCanvas = document.getElementById('preview');
+  const previewCtx = previewCanvas.getContext('2d');
+  const statsEl = document.getElementById('stats');
+  const statusEl = document.getElementById('status');
+  const eventsEl = document.getElementById('events');
+  const img = new Image();
+
+  const state = {
+    board: { x: 0, y: 0, size: 360, rows: 3, cols: 3, tile_w: 120, tile_h: 120, margin: 0 },
+    activeIndex: null,
+    activeState: 'idle',
+    lastTileIndex: null,
+    lastTileState: '',
+    recent: [],
+    latestFrameId: 0,
+    currentSequence: [],
+  };
+
+  function dpr() { return Math.max(1, window.devicePixelRatio || 1); }
+
+  function resizeBoardCanvas() {
+    const b = state.board;
+    const scale = dpr();
+    boardCanvas.width = Math.max(1, Math.floor(b.size * scale));
+    boardCanvas.height = Math.max(1, Math.floor(b.size * scale));
+    boardCanvas.style.width = '100%';
+    boardCanvas.style.height = 'auto';
+    drawBoard();
+  }
+
+  function resizePreviewCanvas() {
+    const rect = previewCanvas.getBoundingClientRect();
+    const scale = dpr();
+    previewCanvas.width = Math.max(1, Math.floor(rect.width * scale));
+    previewCanvas.height = Math.max(1, Math.floor(rect.height * scale));
+    drawPreview();
+  }
+
+  function pushRecent(line) {
+    const t = new Date().toLocaleTimeString();
+    state.recent.unshift(`[${t}] ${line}`);
+    state.recent = state.recent.slice(0, 12);
+    eventsEl.textContent = state.recent.join('\n');
+  }
+
+  function setStatus(text) {
+    statusEl.textContent = text;
+  }
+
+  function renderStats(s) {
+    statsEl.textContent =
+`uptime_s: ${s.uptime_s}
+received_frames: ${s.received_frames}
+total_bytes: ${s.total_bytes}
+throughput_kb_s: ${s.throughput_kb_s}
+duplicate_png_skips: ${s.duplicate_png_skips}
+layout_count: ${s.layout_count}
+tile_event_count: ${s.tile_event_count}
+press_count: ${s.press_count}
+hold_count: ${s.hold_count}
+move_count: ${s.move_count}
+release_count: ${s.release_count}
+active_tile: ${s.active_tile_index === null ? 'none' : (s.active_tile_index + 1)}
+active_state: ${s.active_tile_state}
+current_sequence: ${s.current_sequence_text || '-'}
+last_completed_sequence: ${s.last_completed_sequence || '-'}
+last_frame_hash: ${s.last_frame_hash || '-'}
+last_hash: ${s.last_hash || '-'}
+last_client_elapsed_ms: ${s.last_client_elapsed_ms ?? 'n/a'}
+avg_interval_ms: ${s.avg_interval_ms ?? 'n/a'}
+approx_fps: ${s.approx_fps ?? 'n/a'}
+avg_png_size_bytes: ${s.avg_png_size_bytes ?? 'n/a'}
+avg_processing_ms: ${s.avg_processing_ms ?? 'n/a'}
+board: ${s.board_size} @ (${s.board_x}, ${s.board_y})
+tiles: ${s.board_rows}×${s.board_cols}
+tile_size: ${s.board_tile_w} × ${s.board_tile_h}
+recent_patterns: ${Array.isArray(s.recent_sequences) ? s.recent_sequences.join(' | ') : ''}`;
+  }
+
+  function drawBoard() {
+    const b = state.board;
+    const scale = dpr();
+    boardCanvas.width = Math.max(1, Math.floor(b.size * scale));
+    boardCanvas.height = Math.max(1, Math.floor(b.size * scale));
+    boardCtx.setTransform(scale, 0, 0, scale, 0, 0);
+    boardCtx.fillStyle = '#0f1218';
+    boardCtx.fillRect(0, 0, b.size, b.size);
+
+    for (let row = 0; row < b.rows; row++) {
+      for (let col = 0; col < b.cols; col++) {
+        const index = row * b.cols + col;
+        const x = col * b.tile_w;
+        const y = row * b.tile_h;
+        const active = state.activeIndex === index;
+
+        boardCtx.fillStyle = active ? (state.activeState === 'release' ? '#20283b' : '#284a2d') : '#151922';
+        boardCtx.fillRect(x, y, b.tile_w, b.tile_h);
+        boardCtx.strokeStyle = active ? '#7dff8a' : '#566170';
+        boardCtx.lineWidth = 2;
+        boardCtx.strokeRect(x + 0.5, y + 0.5, b.tile_w - 1, b.tile_h - 1);
+        boardCtx.fillStyle = active ? '#e9ffe9' : '#cad4e1';
+        boardCtx.font = '18px monospace';
+        boardCtx.textAlign = 'center';
+        boardCtx.textBaseline = 'middle';
+        boardCtx.fillText(String(index + 1), x + b.tile_w / 2, y + b.tile_h / 2);
+      }
+    }
+  }
+
+  function drawPreview() {
+    const rect = previewCanvas.getBoundingClientRect();
+    const scale = dpr();
+    previewCanvas.width = Math.max(1, Math.floor(rect.width * scale));
+    previewCanvas.height = Math.max(1, Math.floor(rect.height * scale));
+    previewCtx.setTransform(scale, 0, 0, scale, 0, 0);
+    previewCtx.clearRect(0, 0, rect.width, rect.height);
+    previewCtx.fillStyle = '#fff';
+    previewCtx.fillRect(0, 0, rect.width, rect.height);
+    if (img.complete && img.naturalWidth > 0) {
+      previewCtx.drawImage(img, 0, 0, rect.width, rect.height);
+    } else {
+      previewCtx.fillStyle = '#111';
+      previewCtx.font = '14px monospace';
+      previewCtx.fillText('Waiting for PNG…', 12, 20);
+    }
+  }
+
+  async function refreshLatestPng() {
+    try {
+      const res = await fetch('/latest.png?ts=' + Date.now(), { cache: 'no-store' });
+      if (res.status === 204) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      img.onload = () => {
+        drawPreview();
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    } catch (err) {
+      pushRecent(`preview error: ${err.message || err}`);
+    }
+  }
+
+  function applySnapshot(s) {
+    state.board = {
+      x: s.board_x || 0,
+      y: s.board_y || 0,
+      size: s.board_size || 360,
+      rows: s.board_rows || 3,
+      cols: s.board_cols || 3,
+      tile_w: s.board_tile_w || 120,
+      tile_h: s.board_tile_h || 120,
+      margin: s.board_margin || 0
+    };
+    state.activeIndex = s.active_tile_index === null ? null : s.active_tile_index;
+    state.activeState = s.active_tile_state || 'idle';
+    state.lastTileIndex = s.last_tile_index;
+    state.lastTileState = s.last_tile_state || '';
+    state.currentSequence = s.current_sequence || [];
+    renderStats(s);
+    drawBoard();
+  }
+
+  async function fetchSnapshot() {
+    const res = await fetch('/api/stats', { cache: 'no-store' });
+    const s = await res.json();
+    applySnapshot(s);
+  }
+
+  function handleMessage(msg) {
+    if (!msg || !msg.type) return;
+    if (msg.type === 'hello') {
+      if (msg.stats) applySnapshot(msg.stats);
+      if (msg.stats && msg.stats.latest_id) refreshLatestPng();
+      return;
+    }
+    if (msg.stats) applySnapshot(msg.stats);
+
+    if (msg.type === 'layout') {
+      setStatus('Layout received.');
+      pushRecent(`layout hash ${msg.board && msg.board.hash ? msg.board.hash : 'n/a'}`);
+    } else if (msg.type === 'tile') {
+      const t = msg.tile || {};
+      const row = t.row !== null && t.row !== undefined ? t.row + 1 : '?';
+      const col = t.col !== null && t.col !== undefined ? t.col + 1 : '?';
+      pushRecent(`${t.state || '?'} tile ${t.index !== null && t.index !== undefined ? t.index + 1 : '?'} [${row},${col}] seq=${t.sequence_text || '-'}`);
+      setStatus(`Tile ${t.state || '?'} / ${t.index !== null && t.index !== undefined ? t.index + 1 : '?'} / ${t.sequence_text || '-'}`);
+      if (msg.stats && msg.stats.latest_id) refreshLatestPng();
+    } else if (msg.type === 'frame') {
+      setStatus(`Frame ${msg.stats && msg.stats.latest_id ? msg.stats.latest_id : '?'} received`);
+      if (msg.stats && msg.stats.latest_id) refreshLatestPng();
+    } else if (msg.type === 'charts') {
+      setStatus('Charts updated.');
+      if (msg.stats) renderStats(msg.stats);
+    } else if (msg.type === 'pattern') {
+      setStatus('Pattern completed.');
+      pushRecent(`pattern ${msg.pattern && msg.pattern.last_completed_sequence ? msg.pattern.last_completed_sequence : '-'}`);
+    }
+  }
+
+  async function startSse() {
+    const es = new EventSource('/api/events');
+    es.onmessage = (ev) => {
+      try {
+        handleMessage(JSON.parse(ev.data));
+      } catch (err) {
+        pushRecent(`bad sse: ${err.message || err}`);
+      }
+    };
+    es.onerror = () => setStatus('SSE reconnecting…');
+  }
+
+  function start() {
+    resizeBoardCanvas();
+    resizePreviewCanvas();
+    fetchSnapshot();
+    refreshLatestPng();
+    startSse();
+    setInterval(refreshLatestPng, 1500);
+  }
+
+  window.addEventListener('resize', () => {
+    resizeBoardCanvas();
+    resizePreviewCanvas();
+  });
+
+  start();
+})();
+</script>
+</body>
+</html>

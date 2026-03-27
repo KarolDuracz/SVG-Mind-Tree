@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Tile Board Test</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: rgba(0, 0, 0, 0.55);
+      --text: #d8e3ff;
+      --muted: #93a2bf;
+      --active: #7dff8a;
+      --stroke: #566170;
+    }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      touch-action: none;
+      overscroll-behavior: none;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    #stage {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      touch-action: none;
+    }
+    #hud {
+      position: fixed;
+      left: 12px;
+      top: 12px;
+      right: 12px;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: 13px/1.35 monospace;
+      white-space: pre-wrap;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<div id="hud">Booting…</div>
+
+<script>
+(() => {
+  const GRID_CONFIG = {
+    rows: 3,
+    cols: 3,
+    // Tune these values if you want a smaller/larger board.
+    sidePx: 300,
+    minSidePx: 220,
+    maxSidePx: 360,
+    sideRatio: 0.66,
+    marginPx: 18,
+  };
+  const ROWS = GRID_CONFIG.rows;
+  const COLS = GRID_CONFIG.cols;
+  const stage = document.getElementById('stage');
+  const hud = document.getElementById('hud');
+  const ctx = stage.getContext('2d', { alpha: false });
+  const off = document.createElement('canvas');
+  const offCtx = off.getContext('2d', { alpha: false });
+
+  const state = {
+    dpr: Math.max(1, window.devicePixelRatio || 1),
+    board: { x: 0, y: 0, size: 360, rows: ROWS, cols: COLS, tile_w: 120, tile_h: 120, margin: 0 },
+    activeIndex: null,
+    activeRow: null,
+    activeCol: null,
+    pointerId: null,
+    pressed: false,
+    pressStartedAt: 0,
+    lastMoveAt: 0,
+    lastMovePoint: null,
+    currentSequence: [],
+    lastState: 'idle',
+    lastAck: '',
+    lastFrameHash: '',
+    latestResponseMs: 0,
+    needsFrame: false,
+    frameQueued: false,
+    lastLayoutHash: '',
+    lastSentEventAt: 0,
+    lastSentHoldAt: 0,
+    activePhase: 'idle'
+  };
+
+  function now() { return performance.now(); }
+
+  function fnv1a32(text) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < text.length; i++) {
+      h ^= text.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return ('00000000' + h.toString(16)).slice(-8);
+  }
+
+  function fmt(n) {
+    return Number.isFinite(n) ? n.toFixed(2) : 'n/a';
+  }
+
+  function setHud(extra = '') {
+    const b = state.board;
+    const seq = state.currentSequence.length ? state.currentSequence.join('') : '-';
+    hud.textContent =
+`Board: ${b.size}×${b.size} @ (${fmt(b.x)}, ${fmt(b.y)})
+Tiles: ${b.rows}×${b.cols}
+Pressed: ${state.pressed ? 'yes' : 'no'}
+Active: ${state.activeIndex === null ? 'none' : (state.activeIndex + 1)}
+State: ${state.lastState}
+Sequence: ${seq}
+Ack: ${state.lastAck || 'n/a'}
+${extra}`.trim();
+  }
+
+  function fitStage() {
+    state.dpr = Math.max(1, window.devicePixelRatio || 1);
+    stage.width = Math.floor(window.innerWidth * state.dpr);
+    stage.height = Math.floor(window.innerHeight * state.dpr);
+    stage.style.width = window.innerWidth + 'px';
+    stage.style.height = window.innerHeight + 'px';
+  }
+
+  function layoutBoard() {
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+    const minSide = Math.min(viewportW, viewportH);
+    const safeMax = Math.min(
+      GRID_CONFIG.maxSidePx,
+      Math.floor(viewportW - GRID_CONFIG.marginPx * 2),
+      Math.floor(viewportH - GRID_CONFIG.marginPx * 2)
+    );
+    const preferred = Math.floor(Math.min(GRID_CONFIG.sidePx, minSide * GRID_CONFIG.sideRatio));
+    const size = Math.max(GRID_CONFIG.minSidePx, Math.min(safeMax, preferred));
+    const x = Math.floor((viewportW - size) / 2);
+    const y = Math.floor((viewportH - size) / 2);
+    const tileW = size / COLS;
+    const tileH = size / ROWS;
+    state.board = {
+      x, y, size,
+      rows: ROWS,
+      cols: COLS,
+      tile_w: tileW,
+      tile_h: tileH,
+      margin: 0
+    };
+    off.width = Math.floor(size * state.dpr);
+    off.height = Math.floor(size * state.dpr);
+  }
+
+  function tileFromPoint(x, y) {
+    const b = state.board;
+    if (x < b.x || y < b.y || x >= b.x + b.size || y >= b.y + b.size) return null;
+    const bx = x - b.x;
+    const by = y - b.y;
+    const col = Math.max(0, Math.min(COLS - 1, Math.floor(bx / b.tile_w)));
+    const row = Math.max(0, Math.min(ROWS - 1, Math.floor(by / b.tile_h)));
+    const index = row * COLS + col;
+    const rx = col * b.tile_w;
+    const ry = row * b.tile_h;
+    return {
+      index, row, col,
+      x: rx, y: ry, w: b.tile_w, h: b.tile_h,
+      center_x: rx + b.tile_w / 2,
+      center_y: ry + b.tile_h / 2
+    };
+  }
+
+  function drawTile(ctx2, tile, active, phase) {
+    // Draw in CSS-pixel coordinates. The offscreen canvas is scaled once via its transform.
+    const x = tile.x;
+    const y = tile.y;
+    const w = tile.w;
+    const h = tile.h;
+
+    let fill = '#151922';
+    if (active) {
+      if (phase === 'release') fill = '#20283b';
+      else if (phase === 'move') fill = '#233042';
+      else fill = '#284a2d';
+    }
+
+    ctx2.fillStyle = fill;
+    ctx2.fillRect(x, y, w, h);
+    ctx2.strokeStyle = active ? '#7dff8a' : '#566170';
+    ctx2.lineWidth = 2;
+    ctx2.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    ctx2.fillStyle = active ? '#e9ffe9' : '#cad4e1';
+    ctx2.font = '18px monospace';
+    ctx2.textAlign = 'center';
+    ctx2.textBaseline = 'middle';
+    ctx2.fillText(String(tile.index + 1), x + w / 2, y + h / 2);
+  }
+
+  function drawBoard() {
+    const b = state.board;
+    off.width = Math.max(1, Math.floor(b.size * state.dpr));
+    off.height = Math.max(1, Math.floor(b.size * state.dpr));
+    offCtx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+    offCtx.fillStyle = '#0f1218';
+    offCtx.fillRect(0, 0, b.size, b.size);
+
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const tile = {
+          index: row * COLS + col,
+          row, col,
+          x: col * b.tile_w,
+          y: row * b.tile_h,
+          w: b.tile_w,
+          h: b.tile_h
+        };
+        const active = state.activeIndex === tile.index;
+        drawTile(offCtx, tile, active, state.activePhase);
+      }
+    }
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = '#0f1115';
+    ctx.fillRect(0, 0, stage.width, stage.height);
+    ctx.drawImage(off, Math.round(b.x * state.dpr), Math.round(b.y * state.dpr));
+  }
+
+  function hashBoard() {
+    const payload = [
+      state.activeIndex ?? -1,
+      state.activePhase,
+      state.currentSequence.join(','),
+      Math.round(state.board.x), Math.round(state.board.y),
+      Math.round(state.board.size), Math.round(state.board.tile_w), Math.round(state.board.tile_h)
+    ].join('|');
+    return fnv1a32(payload);
+  }
+
+  async function postJson(url, body, extraHeaders = {}) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...extraHeaders },
+      body: JSON.stringify(body),
+      keepalive: true
+    });
+    return res.json();
+  }
+
+  async function sendLayout() {
+    const payload = { board: state.board };
+    const data = await postJson('/api/layout', payload);
+    state.lastLayoutHash = data.hash || '';
+    setHud('Layout sent.');
+  }
+
+  async function sendFrame(eventType) {
+    if (state.frameQueued) return;
+    state.frameQueued = true;
+
+    try {
+      drawBoard();
+      const blob = await new Promise((resolve) => off.toBlob(resolve, 'image/png'));
+      if (!blob) return;
+
+      const hash = hashBoard();
+      if (hash === state.lastFrameHash && eventType !== 'release') {
+        return;
+      }
+      state.lastFrameHash = hash;
+
+      const elapsedMs = state.pressed ? Math.max(0, now() - state.pressStartedAt) : 0;
+      const headers = {
+        'X-Board-Hash': hash,
+        'X-Client-Elapsed-Ms': String(elapsedMs),
+        'X-Event-Type': eventType
+      };
+      const res = await fetch('/api/frame', {
+        method: 'POST',
+        headers,
+        body: blob,
+        keepalive: true
+      });
+      const data = await res.json().catch(() => ({}));
+      state.latestResponseMs = Number.isFinite(data.client_elapsed_ms) ? data.client_elapsed_ms : state.latestResponseMs;
+      state.lastAck = `frame ${data.frame_id ?? '?'} / ${data.size ?? '?'} bytes`;
+    } catch (err) {
+      state.lastAck = `frame error: ${err && err.message ? err.message : err}`;
+    } finally {
+      state.frameQueued = false;
+      setHud();
+    }
+  }
+
+  async function sendTile(stateName, tile, evt, extra = {}) {
+    if (!tile && stateName !== 'release') return;
+
+    const elapsed = Math.max(0, now() - state.pressStartedAt);
+    const currentSeq = state.currentSequence.slice();
+    const sequenceText = currentSeq.join('');
+    const boardHash = hashBoard();
+
+    const body = {
+      state: stateName,
+      index: tile ? tile.index : null,
+      row: tile ? tile.row : null,
+      col: tile ? tile.col : null,
+      pointer_id: state.pointerId,
+      client_ts: Date.now(),
+      elapsed_ms: Math.round(elapsed * 100) / 100,
+      hold_ms: state.pressed ? Math.round(elapsed * 100) / 100 : 0,
+      sequence: currentSeq,
+      sequence_text: sequenceText,
+      pointer_x: evt ? evt.clientX : null,
+      pointer_y: evt ? evt.clientY : null,
+      delta_x: extra.delta_x ?? null,
+      delta_y: extra.delta_y ?? null,
+      total_dx: extra.total_dx ?? null,
+      total_dy: extra.total_dy ?? null,
+      direction_deg: extra.direction_deg ?? null,
+      speed: extra.speed ?? null,
+      release_direction_deg: extra.release_direction_deg ?? null,
+      release_speed: extra.release_speed ?? null,
+      frame_hash: boardHash,
+      hash: boardHash,
+      board: state.board,
+    };
+
+    try {
+      const data = await postJson('/api/tile', body);
+      state.lastAck = `${stateName} tile ${tile ? (tile.index + 1) : 'none'} / seq ${sequenceText || '-'}`;
+      if (data.sequence_text !== undefined) {
+        state.lastAck = `${stateName} ${data.sequence_text || '-'} / ${state.lastAck}`;
+      }
+    } catch (err) {
+      state.lastAck = `tile error: ${err && err.message ? err.message : err}`;
+    } finally {
+      setHud();
+    }
+  }
+
+  function currentMovementMetrics(point, prev) {
+    if (!prev) return { delta_x: 0, delta_y: 0, total_dx: 0, total_dy: 0, direction_deg: 0, speed: 0 };
+    const dx = point.x - prev.x;
+    const dy = point.y - prev.y;
+    const totalDx = point.x - state.board.x - state.board.size / 2;
+    const totalDy = point.y - state.board.y - state.board.size / 2;
+    return {
+      delta_x: dx,
+      delta_y: dy,
+      total_dx: totalDx,
+      total_dy: totalDy,
+      direction_deg: Math.round((Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360),
+      speed: Math.sqrt(dx * dx + dy * dy),
+    };
+  }
+
+  function startPress(evt) {
+    const p = { x: evt.clientX, y: evt.clientY };
+    const tile = tileFromPoint(p.x, p.y);
+    if (!tile) return;
+
+    state.pressed = true;
+    state.pointerId = evt.pointerId;
+    state.pressStartedAt = now();
+    state.lastMoveAt = state.pressStartedAt;
+    state.lastMovePoint = p;
+    state.currentSequence = [tile.index + 1];
+    state.activeIndex = tile.index;
+    state.activeRow = tile.row;
+    state.activeCol = tile.col;
+    state.lastState = 'press';
+    state.activePhase = 'press';
+    setHud(`Touched tile ${tile.index + 1} at (${tile.row}, ${tile.col})`);
+
+    stage.setPointerCapture?.(evt.pointerId);
+    sendTile('press', tile, evt, currentMovementMetrics(p, null)).then(() => {
+      requestAnimationFrame(() => sendFrame('press'));
+    });
+  }
+
+  function movePress(evt) {
+    if (!state.pressed || evt.pointerId !== state.pointerId) return;
+
+    const p = { x: evt.clientX, y: evt.clientY };
+    const tile = tileFromPoint(p.x, p.y);
+    if (!tile) return;
+
+    const metrics = currentMovementMetrics(p, state.lastMovePoint);
+    const nowMs = now();
+    const movedTile = state.activeIndex !== tile.index;
+    const shouldEmitHold = nowMs - state.lastSentHoldAt > 60;
+
+    state.activeIndex = tile.index;
+    state.activeRow = tile.row;
+    state.activeCol = tile.col;
+    state.lastMovePoint = p;
+    state.lastMoveAt = nowMs;
+
+    if (movedTile) {
+      if (state.currentSequence[state.currentSequence.length - 1] !== tile.index + 1) {
+        state.currentSequence.push(tile.index + 1);
+      }
+      state.lastState = 'move';
+      state.activePhase = 'move';
+      state.lastSentHoldAt = nowMs;
+      setHud(`Moved to tile ${tile.index + 1} / sequence ${state.currentSequence.join('')}`);
+      sendTile('move', tile, evt, metrics).then(() => requestAnimationFrame(() => sendFrame('move')));
+      return;
+    }
+
+    if (shouldEmitHold) {
+      state.lastState = 'hold';
+      state.activePhase = 'hold';
+      state.lastSentHoldAt = nowMs;
+      sendTile('hold', tile, evt, metrics).then(() => requestAnimationFrame(() => sendFrame('hold')));
+    }
+  }
+
+  function endPress(evt) {
+    if (!state.pressed || evt.pointerId !== state.pointerId) return;
+    const p = { x: evt.clientX, y: evt.clientY };
+    const tile = tileFromPoint(p.x, p.y) || (state.activeIndex !== null ? {
+      index: state.activeIndex,
+      row: state.activeRow,
+      col: state.activeCol
+    } : null);
+
+    const metrics = currentMovementMetrics(p, state.lastMovePoint);
+    const releaseSpeed = metrics.speed;
+    const releaseDirection = metrics.direction_deg;
+
+    state.pressed = false;
+    state.lastState = 'release';
+    state.activePhase = 'release';
+    setHud(`Released. Sequence ${state.currentSequence.join('') || '-'}`);
+
+    sendTile('release', tile, evt, {
+      ...metrics,
+      release_direction_deg: releaseDirection,
+      release_speed: releaseSpeed
+    }).then(() => requestAnimationFrame(() => sendFrame('release')));
+
+    state.currentSequence = [];
+    state.pointerId = null;
+    state.activeIndex = null;
+    state.activeRow = null;
+    state.activeCol = null;
+    state.lastMovePoint = null;
+  }
+
+  stage.addEventListener('pointerdown', (evt) => {
+    evt.preventDefault();
+    startPress(evt);
+  }, { passive: false });
+
+  stage.addEventListener('pointermove', (evt) => {
+    evt.preventDefault();
+    movePress(evt);
+  }, { passive: false });
+
+  stage.addEventListener('pointerup', (evt) => {
+    evt.preventDefault();
+    endPress(evt);
+  }, { passive: false });
+
+  stage.addEventListener('pointercancel', (evt) => {
+    evt.preventDefault();
+    endPress(evt);
+  }, { passive: false });
+
+  window.addEventListener('resize', async () => {
+    fitStage();
+    layoutBoard();
+    drawBoard();
+    await sendLayout();
+  });
+
+  function start() {
+    fitStage();
+    layoutBoard();
+    drawBoard();
+    setHud('Ready.');
+    sendLayout().then(() => sendFrame('layout'));
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>

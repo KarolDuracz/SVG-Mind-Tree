@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grid Patterns</title>
+  <style>
+    :root {
+      --bg: #10131a;
+      --panel: #171b24;
+      --text: #e7edf8;
+      --muted: #9ea9bd;
+      --accent: #7dff8a;
+      --accent2: #ffd166;
+    }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    .wrap {
+      padding: 12px;
+      display: grid;
+      gap: 12px;
+      box-sizing: border-box;
+      grid-template-columns: 1fr 1fr;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid #293142;
+      border-radius: 12px;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+    h1, h2 { margin: 0 0 8px 0; font-size: 18px; }
+    .meta { color: var(--muted); margin-bottom: 10px; font-size: 13px; }
+    .links a { color: var(--accent); text-decoration: none; margin-right: 10px; }
+    .links a:hover { text-decoration: underline; }
+    #board {
+      width: 100%;
+      display: block;
+      background: #0f1218;
+      border-radius: 10px;
+    }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .full { grid-column: 1 / -1; }
+    .list {
+      display: grid;
+      gap: 6px;
+      font: 13px/1.4 monospace;
+      white-space: pre-wrap;
+    }
+    @media (max-width: 980px) {
+      .wrap { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="links">
+      <a href="/">Client</a>
+      <a href="/admin">Admin</a>
+      <a href="/charts">Charts</a>
+    </div>
+    <h1>Pattern analysis</h1>
+    <div class="meta">Tracks sequences produced while the finger is held and moved across the tiles.</div>
+    <canvas id="board"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Active sequence</h2>
+    <div class="meta">Live while the finger is down</div>
+    <pre id="active">(none)</pre>
+  </div>
+
+  <div class="card full">
+    <h2>Recent completed patterns</h2>
+    <div class="meta">Example patterns such as 345, 12, 1236</div>
+    <pre id="recent">(none)</pre>
+  </div>
+
+  <div class="card">
+    <h2>Length histogram</h2>
+    <pre id="hist">(none)</pre>
+  </div>
+
+  <div class="card">
+    <h2>Top sequences</h2>
+    <pre id="top">(none)</pre>
+  </div>
+</div>
+
+<script>
+(() => {
+  const board = document.getElementById('board');
+  const activeEl = document.getElementById('active');
+  const recentEl = document.getElementById('recent');
+  const histEl = document.getElementById('hist');
+  const topEl = document.getElementById('top');
+  const ctx = board.getContext('2d');
+
+  const state = {
+    board: { x: 0, y: 0, size: 360, rows: 3, cols: 3, tile_w: 120, tile_h: 120 },
+    activeIndex: null,
+    activeState: 'idle',
+    currentSequence: [],
+    recentSequences: [],
+    patternCountsTop: [],
+    sequenceLengthCounts: {},
+  };
+
+  function dpr() { return Math.max(1, window.devicePixelRatio || 1); }
+
+  function resizeBoard() {
+    const scale = dpr();
+    const cssWidth = Math.min(420, board.parentElement.clientWidth - 2);
+    const cssHeight = cssWidth;
+    board.style.width = cssWidth + 'px';
+    board.style.height = cssHeight + 'px';
+    board.width = Math.floor(cssWidth * scale);
+    board.height = Math.floor(cssHeight * scale);
+    drawBoard();
+  }
+
+  function drawBoard() {
+    const s = state.board;
+    const scale = dpr();
+    const w = board.width / scale;
+    const h = board.height / scale;
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.fillStyle = '#0f1218';
+    ctx.fillRect(0, 0, w, h);
+
+    const boardW = Math.min(w, h);
+    const x0 = (w - boardW) / 2;
+    const y0 = (h - boardW) / 2;
+    const tileW = boardW / s.cols;
+    const tileH = boardW / s.rows;
+
+    for (let row = 0; row < s.rows; row++) {
+      for (let col = 0; col < s.cols; col++) {
+        const idx = row * s.cols + col;
+        const x = x0 + col * tileW;
+        const y = y0 + row * tileH;
+        const active = state.currentSequence.includes(idx + 1) || state.activeIndex === idx;
+        ctx.fillStyle = active ? (state.activeState === 'release' ? '#20283b' : '#284a2d') : '#151922';
+        ctx.fillRect(x, y, tileW, tileH);
+        ctx.strokeStyle = active ? '#7dff8a' : '#566170';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x + 0.5, y + 0.5, tileW - 1, tileH - 1);
+        ctx.fillStyle = active ? '#e9ffe9' : '#cad4e1';
+        ctx.font = '18px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(idx + 1), x + tileW / 2, y + tileH / 2);
+      }
+    }
+  }
+
+  function fmtSeq(seq) {
+    if (!Array.isArray(seq) || !seq.length) return '-';
+    return seq.join('');
+  }
+
+  function renderSnapshot(s) {
+    state.board = {
+      x: s.board_x || 0,
+      y: s.board_y || 0,
+      size: s.board_size || 360,
+      rows: s.board_rows || 3,
+      cols: s.board_cols || 3,
+      tile_w: s.board_tile_w || 120,
+      tile_h: s.board_tile_h || 120
+    };
+    state.activeIndex = s.active_tile_index === null ? null : s.active_tile_index;
+    state.activeState = s.active_tile_state || 'idle';
+    state.currentSequence = s.current_sequence || [];
+    state.recentSequences = s.recent_sequences || [];
+    state.patternCountsTop = s.pattern_counts_top || [];
+    state.sequenceLengthCounts = s.sequence_length_counts || {};
+
+    activeEl.textContent =
+`sequence: ${fmtSeq(state.currentSequence)}
+state: ${state.activeState}
+active tile: ${state.activeIndex === null ? 'none' : (state.activeIndex + 1)}
+last completed: ${s.last_completed_sequence || '-'}
+hold ms: ${s.last_completed_sequence_hold_ms ?? 'n/a'}`;
+
+    recentEl.textContent = state.recentSequences.length
+      ? state.recentSequences.map((s, i) => `${i + 1}. ${s}`).join('\n')
+      : '(none)';
+
+    const histLines = Object.keys(state.sequenceLengthCounts).length
+      ? Object.entries(state.sequenceLengthCounts)
+          .sort((a, b) => Number(a[0]) - Number(b[0]))
+          .map(([k, v]) => `${k} tiles: ${v}`)
+          .join('\n')
+      : '(none)';
+    histEl.textContent = histLines;
+
+    topEl.textContent = state.patternCountsTop.length
+      ? state.patternCountsTop.map(([seq, count], i) => `${i + 1}. ${seq}  x${count}`).join('\n')
+      : '(none)';
+
+    drawBoard();
+  }
+
+  async function initialLoad() {
+    const res = await fetch('/api/patterns', { cache: 'no-store' });
+    const payload = await res.json();
+    renderSnapshot(payload.stats || {});
+  }
+
+  function startSse() {
+    const es = new EventSource('/api/events');
+    es.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+        if (msg.type === 'hello') {
+          renderSnapshot(msg.stats || {});
+        } else if (msg.type === 'pattern' || msg.type === 'tile') {
+          renderSnapshot(msg.stats || {});
+        }
+      } catch (err) {
+        activeEl.textContent = 'SSE parse error: ' + (err.message || err);
+      }
+    };
+  }
+
+  window.addEventListener('resize', resizeBoard);
+  resizeBoard();
+  initialLoad().then(startSse);
+})();
+</script>
+</body>
+</html>

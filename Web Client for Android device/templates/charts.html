@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Real-time charts</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121824;
+      --panel-2: #0f141d;
+      --text: #e7edf8;
+      --muted: #a8b2c2;
+      --grid: #273041;
+      --accent: #7dff8a;
+      --accent2: #7dd3ff;
+      --accent3: #ffd166;
+      --accent4: #ff7d7d;
+      --accent5: #c27dff;
+    }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      scroll-behavior: smooth;
+    }
+    body {
+      overflow-y: auto;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      background: linear-gradient(180deg, rgba(11,15,20,0.98), rgba(11,15,20,0.92));
+      border-bottom: 1px solid #1f2735;
+      padding: 12px 14px;
+      backdrop-filter: blur(8px);
+    }
+    .titlebox h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .titlebox .meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .links a {
+      color: #7dff8a;
+      text-decoration: none;
+      margin-right: 10px;
+      font-size: 13px;
+    }
+    .links a:hover { text-decoration: underline; }
+    .timer {
+      min-width: 220px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 18px;
+      line-height: 1.25;
+      color: var(--text);
+    }
+    .timer .big {
+      display: block;
+      font-size: 27px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .timer .small {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 2px;
+    }
+    .wrap {
+      padding: 12px;
+      display: grid;
+      gap: 12px;
+      box-sizing: border-box;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid #273041;
+      border-radius: 12px;
+      padding: 12px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .card h2 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+    }
+    .card .desc {
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    canvas.chart {
+      width: 100%;
+      max-width: 500px;
+      height: 200px;
+      display: block;
+      background: var(--panel-2);
+      border-radius: 10px;
+      border: 1px solid #273041;
+    }
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--text);
+    }
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+      .timer { min-width: 160px; font-size: 15px; }
+      .timer .big { font-size: 20px; }
+      canvas.chart { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="titlebox">
+      <div class="links">
+        <a href="/">Client</a>
+        <a href="/admin">Admin</a>
+        <a href="/patterns">Patterns</a>
+      </div>
+      <h1>Real-time charts</h1>
+      <div class="meta">
+        Each card is a separate metric. The time axis scrolls automatically, while new events update the live lines.
+      </div>
+    </div>
+    <div class="timer" id="timer">
+      <span class="big">--</span>
+      <span class="small">launch</span>
+      <span class="small">last response</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="grid">
+      <div class="card">
+        <h2>Tile index</h2>
+        <div class="desc">Which tile was pressed or held. Values range from 1 to 9 in the 3×3 grid.</div>
+        <canvas id="chart-tile" class="chart"></canvas>
+        <div class="legend"><span><span class="dot" style="background:#7dff8a"></span>Tile</span><span>Live, scrolling time window</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Response time</h2>
+        <div class="desc">Round-trip response measured from the client event timestamp to the server acknowledgment.</div>
+        <canvas id="chart-response" class="chart"></canvas>
+        <div class="legend"><span><span class="dot" style="background:#ffd166"></span>Response ms</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Hold time</h2>
+        <div class="desc">How long the tile stayed active before release.</div>
+        <canvas id="chart-hold" class="chart"></canvas>
+        <div class="legend"><span><span class="dot" style="background:#ff7d7d"></span>Hold ms</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Movement direction</h2>
+        <div class="desc">Direction of pointer movement while the finger is held down.</div>
+        <canvas id="chart-direction" class="chart"></canvas>
+        <div class="legend"><span><span class="dot" style="background:#7dd3ff"></span>Direction degrees</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Movement speed</h2>
+        <div class="desc">Motion speed while the tile is being held and moved.</div>
+        <canvas id="chart-speed" class="chart"></canvas>
+        <div class="legend"><span><span class="dot" style="background:#c27dff"></span>Speed</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Release direction</h2>
+        <div class="desc">Direction and speed captured when the finger lifts from the screen.</div>
+        <canvas id="chart-release" class="chart"></canvas>
+        <div class="legend"><span><span class="dot" style="background:#7dff8a"></span>Release speed</span><span><span class="dot" style="background:#ff7d7d"></span>Release direction</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Sequence length</h2>
+        <div class="desc">Length of the tile sequence that was built during a single hold-and-move gesture.</div>
+        <canvas id="chart-sequence" class="chart"></canvas>
+        <div class="legend"><span><span class="dot" style="background:#ffd166"></span>Sequence length</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Live stats</h2>
+        <div class="desc">Server-side values for the current chart stream and its update state.</div>
+        <pre id="stats">Loading…</pre>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const WINDOW_MS = 20000;
+  const POLL_MS = 250;
+  const RENDER_MS = 100;
+  const MAX_POINTS = 200;
+
+  const canvases = {
+    tile: document.getElementById('chart-tile'),
+    response: document.getElementById('chart-response'),
+    hold: document.getElementById('chart-hold'),
+    direction: document.getElementById('chart-direction'),
+    speed: document.getElementById('chart-speed'),
+    release: document.getElementById('chart-release'),
+    sequence: document.getElementById('chart-sequence'),
+  };
+  const statsEl = document.getElementById('stats');
+  const timerEl = document.getElementById('timer');
+  const ctxState = {
+    payload: null,
+    lastVersion: -1,
+    clockOffsetMs: 0,
+    startedAtMs: null,
+    lastResponseMs: null,
+    lastRenderTs: 0,
+  };
+
+  const COLORS = {
+    tile: '#7dff8a',
+    response: '#ffd166',
+    hold: '#ff7d7d',
+    direction: '#7dd3ff',
+    speed: '#c27dff',
+    releaseDirection: '#ff7d7d',
+    releaseSpeed: '#7dff8a',
+    sequence: '#ffd166',
+    grid: '#273041',
+    text: '#e7edf8',
+    muted: '#a8b2c2',
+    bg: '#0f141d',
+  };
+
+  function dpr() {
+    return Math.max(1, window.devicePixelRatio || 1);
+  }
+
+  function nowMs() {
+    return Date.now() + ctxState.clockOffsetMs;
+  }
+
+  function clamp(v, lo, hi) {
+    return Math.max(lo, Math.min(hi, v));
+  }
+
+  function fmtMs(ms) {
+    if (ms === null || ms === undefined || !Number.isFinite(ms)) return 'n/a';
+    if (ms < 1000) return `${ms.toFixed(1)} ms`;
+    const s = Math.floor(ms / 1000);
+    const rem = Math.round(ms - s * 1000);
+    return `${s}s ${String(rem).padStart(3, '0')} ms`;
+  }
+
+  function fmtNum(v, digits = 1) {
+    return Number.isFinite(v) ? Number(v).toFixed(digits) : 'n/a';
+  }
+
+  function toEventMs(p) {
+    if (!p) return null;
+    const t = Number(p.t);
+    if (!Number.isFinite(t)) return null;
+    return Math.round(t * 1000);
+  }
+
+  function extractSeries(payload, key) {
+    const data = (payload && payload.charts && Array.isArray(payload.charts[key])) ? payload.charts[key] : [];
+    return data.slice(-MAX_POINTS).map(p => ({ ...p, _ms: toEventMs(p) }));
+  }
+
+  function computeRange(values, fixed) {
+    if (fixed && Number.isFinite(fixed.min) && Number.isFinite(fixed.max)) {
+      return { min: fixed.min, max: fixed.max };
+    }
+    if (!values.length) return { min: 0, max: 1 };
+    let min = Math.min(...values);
+    let max = Math.max(...values);
+    if (!Number.isFinite(min) || !Number.isFinite(max)) return { min: 0, max: 1 };
+    if (min === max) {
+      const pad = Math.abs(min) < 1 ? 1 : Math.abs(min) * 0.1;
+      min -= pad;
+      max += pad;
+    } else {
+      const pad = (max - min) * 0.15;
+      min -= pad;
+      max += pad;
+    }
+    return { min, max };
+  }
+
+  function resizeCanvas(canvas) {
+    const cssWidth = Math.min(500, canvas.parentElement.clientWidth - 2);
+    const cssHeight = 200;
+    canvas.style.width = cssWidth + 'px';
+    canvas.style.height = cssHeight + 'px';
+    canvas.width = Math.floor(cssWidth * dpr());
+    canvas.height = Math.floor(cssHeight * dpr());
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr(), 0, 0, dpr(), 0, 0);
+    return { w: cssWidth, h: cssHeight, ctx };
+  }
+
+  function drawBackground(ctx, w, h) {
+    ctx.fillStyle = COLORS.bg;
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = COLORS.grid;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i <= 4; i++) {
+      const y = 10 + ((h - 26) * i / 4);
+      ctx.moveTo(8, y);
+      ctx.lineTo(w - 8, y);
+    }
+    for (let i = 0; i <= 5; i++) {
+      const x = 10 + ((w - 20) * i / 5);
+      ctx.moveTo(x, 10);
+      ctx.lineTo(x, h - 18);
+    }
+    ctx.stroke();
+  }
+
+  function drawAxes(ctx, w, h, minY, maxY, now, startMs) {
+    const plotLeft = 40;
+    const plotRight = 10;
+    const plotTop = 10;
+    const plotBottom = 24;
+    const chartW = w - plotLeft - plotRight;
+    const chartH = h - plotTop - plotBottom;
+
+    ctx.fillStyle = COLORS.muted;
+    ctx.font = '10px monospace';
+
+    // Y axis labels.
+    const yTicks = 4;
+    for (let i = 0; i <= yTicks; i++) {
+      const y = plotTop + (chartH * i / yTicks);
+      const value = maxY - ((maxY - minY) * i / yTicks);
+      ctx.fillText(fmtNum(value, 1), 4, y + 3);
+    }
+
+    // X axis labels (launch-relative ms).
+    const xTicks = 5;
+    for (let i = 0; i <= xTicks; i++) {
+      const x = plotLeft + (chartW * i / xTicks);
+      const t = now - WINDOW_MS + (WINDOW_MS * i / xTicks);
+      const rel = startMs !== null ? Math.max(0, Math.round(t - startMs)) : Math.round(t);
+      ctx.fillText(`${rel} ms`, x - 14, h - 8);
+      ctx.strokeStyle = COLORS.grid;
+      ctx.beginPath();
+      ctx.moveTo(x, plotTop);
+      ctx.lineTo(x, h - plotBottom);
+      ctx.stroke();
+    }
+
+    return { plotLeft, plotRight, plotTop, plotBottom, chartW, chartH };
+  }
+
+  function drawLineChart(canvas, series, opts) {
+    const { w, h, ctx } = resizeCanvas(canvas);
+    drawBackground(ctx, w, h);
+
+    const now = nowMs();
+    const start = ctxState.startedAtMs;
+    const seriesVisible = series.filter(p => Number.isFinite(p._ms) && p._ms >= now - WINDOW_MS - 500 && p._ms <= now + 1000);
+
+    const values = seriesVisible.map(opts.valueOf).filter(v => Number.isFinite(v));
+    const range = computeRange(values, opts.fixedRange);
+    const axes = drawAxes(ctx, w, h, range.min, range.max, now, start);
+
+    ctx.fillStyle = COLORS.text;
+    ctx.font = '12px monospace';
+    ctx.fillText(opts.label, 12, 16);
+
+    if (!seriesVisible.length) {
+      ctx.fillStyle = COLORS.muted;
+      ctx.font = '12px monospace';
+      ctx.fillText('No data yet.', 12, 34);
+      return;
+    }
+
+    const { plotLeft, plotTop, chartW, chartH } = axes;
+    const minT = now - WINDOW_MS;
+    const maxT = now;
+
+    // Connect line.
+    ctx.strokeStyle = opts.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    let started = false;
+    for (const p of seriesVisible) {
+      const val = opts.valueOf(p);
+      if (!Number.isFinite(val) || !Number.isFinite(p._ms)) continue;
+      const x = plotLeft + ((p._ms - minT) / (maxT - minT)) * chartW;
+      const y = plotTop + chartH - ((val - range.min) / (range.max - range.min)) * chartH;
+      if (!started) {
+        ctx.moveTo(x, y);
+        started = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    ctx.stroke();
+
+    // Point markers and latest value.
+    for (const p of seriesVisible) {
+      const val = opts.valueOf(p);
+      if (!Number.isFinite(val) || !Number.isFinite(p._ms)) continue;
+      const x = plotLeft + ((p._ms - minT) / (maxT - minT)) * chartW;
+      const y = plotTop + chartH - ((val - range.min) / (range.max - range.min)) * chartH;
+      ctx.fillStyle = opts.color;
+      ctx.beginPath();
+      ctx.arc(x, y, 2.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const last = seriesVisible[seriesVisible.length - 1];
+    const lastValue = opts.valueOf(last);
+    ctx.fillStyle = COLORS.text;
+    ctx.font = '11px monospace';
+    ctx.fillText(`latest: ${fmtNum(lastValue, opts.digits ?? 1)}`, 12, h - 30);
+  }
+
+  function drawTileChart(canvas, series) {
+    const fixedRange = { min: 0.5, max: 9.5 };
+    drawLineChart(canvas, series, {
+      label: 'Tile ID (1–9)',
+      color: COLORS.tile,
+      fixedRange,
+      digits: 0,
+      valueOf: (p) => Number(p.tile),
+    });
+  }
+
+  function drawResponseChart(canvas, series) {
+    drawLineChart(canvas, series, {
+      label: 'Response time (ms)',
+      color: COLORS.response,
+      digits: 1,
+      valueOf: (p) => Number(p.response_ms),
+    });
+  }
+
+  function drawHoldChart(canvas, series) {
+    drawLineChart(canvas, series, {
+      label: 'Hold time (ms)',
+      color: COLORS.hold,
+      digits: 1,
+      valueOf: (p) => Number(p.hold_ms),
+    });
+  }
+
+  function drawDirectionChart(canvas, series) {
+    drawLineChart(canvas, series, {
+      label: 'Movement direction (deg)',
+      color: COLORS.direction,
+      fixedRange: { min: 0, max: 360 },
+      digits: 1,
+      valueOf: (p) => Number(p.angle),
+    });
+  }
+
+  function drawSpeedChart(canvas, series) {
+    drawLineChart(canvas, series, {
+      label: 'Movement speed',
+      color: COLORS.speed,
+      digits: 1,
+      valueOf: (p) => Number(p.speed),
+    });
+  }
+
+  function drawReleaseChart(canvas, series) {
+    // Draw two separate, readable lines in the same chart because they are from the same event window.
+    const { w, h, ctx } = resizeCanvas(canvas);
+    drawBackground(ctx, w, h);
+
+    const now = nowMs();
+    const start = ctxState.startedAtMs;
+    const visible = series.filter(p => Number.isFinite(p._ms) && p._ms >= now - WINDOW_MS - 500 && p._ms <= now + 1000);
+    const directions = visible.map(p => Number(p.release_direction_deg)).filter(v => Number.isFinite(v));
+    const speeds = visible.map(p => Number(p.release_speed)).filter(v => Number.isFinite(v));
+    const range = computeRange([...directions, ...speeds], null);
+    const axes = drawAxes(ctx, w, h, range.min, range.max, now, start);
+
+    ctx.fillStyle = COLORS.text;
+    ctx.font = '12px monospace';
+    ctx.fillText('Release direction / speed', 12, 16);
+
+    if (!visible.length) {
+      ctx.fillStyle = COLORS.muted;
+      ctx.font = '12px monospace';
+      ctx.fillText('No data yet.', 12, 34);
+      return;
+    }
+
+    const { plotLeft, plotTop, chartW, chartH } = axes;
+    const minT = now - WINDOW_MS;
+    const maxT = now;
+
+    function drawSeries(key, color, getter) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      let started = false;
+      for (const p of visible) {
+        const val = getter(p);
+        if (!Number.isFinite(val) || !Number.isFinite(p._ms)) continue;
+        const x = plotLeft + ((p._ms - minT) / (maxT - minT)) * chartW;
+        const y = plotTop + chartH - ((val - range.min) / (range.max - range.min)) * chartH;
+        if (!started) { ctx.moveTo(x, y); started = true; } else { ctx.lineTo(x, y); }
+      }
+      ctx.stroke();
+      for (const p of visible) {
+        const val = getter(p);
+        if (!Number.isFinite(val) || !Number.isFinite(p._ms)) continue;
+        const x = plotLeft + ((p._ms - minT) / (maxT - minT)) * chartW;
+        const y = plotTop + chartH - ((val - range.min) / (range.max - range.min)) * chartH;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, 2.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    drawSeries('release_direction_deg', COLORS.hold, p => Number(p.release_direction_deg));
+    drawSeries('release_speed', COLORS.tile, p => Number(p.release_speed));
+
+    const last = visible[visible.length - 1];
+    ctx.fillStyle = COLORS.text;
+    ctx.font = '11px monospace';
+    ctx.fillText(`latest angle: ${fmtNum(Number(last.release_direction_deg), 1)}°`, 12, h - 34);
+    ctx.fillText(`latest speed: ${fmtNum(Number(last.release_speed), 1)}`, 12, h - 20);
+  }
+
+  function drawSequenceChart(canvas, series) {
+    drawLineChart(canvas, series, {
+      label: 'Sequence length',
+      color: COLORS.sequence,
+      digits: 0,
+      valueOf: (p) => Number(p.sequence_len),
+    });
+  }
+
+  function renderStats(payload) {
+    const stats = payload.stats || {};
+    const charts = payload.charts || {};
+    const latestTile = (charts.tile_series || []).slice(-1)[0] || null;
+    const latestResponseMs = Number.isFinite(Number(latestTile && latestTile.response_ms)) ? Number(latestTile.response_ms) : null;
+    const serverNowMs = Number(payload.server_now_ms || Date.now());
+    const uptimeMs = Number(stats.started_at_ms) ? (serverNowMs - Number(stats.started_at_ms)) : Number(stats.uptime_s || 0) * 1000;
+    const lastUpdateMs = Number(charts.updated_at ? (serverNowMs - (Number(charts.updated_at) * 1000)) : NaN);
+
+    timerEl.innerHTML = `
+      <span class="big">${fmtMs(uptimeMs)}</span>
+      <span class="small">since launch</span>
+      <span class="small">last response: ${fmtMs(latestResponseMs)}</span>
+    `;
+
+    statsEl.textContent = JSON.stringify({
+      uptime_ms: Math.round(uptimeMs),
+      server_now_ms: serverNowMs,
+      charts_version: charts.version,
+      charts_updated_at: charts.updated_at,
+      last_update_age_ms: Number.isFinite(lastUpdateMs) ? Math.round(lastUpdateMs) : null,
+      chunk_files: charts.chunk_files,
+      chunk_max_events: charts.chunk_max_events,
+      tile_events: (charts.tile_series || []).length,
+      motion_events: (charts.motion_series || []).length,
+      release_events: (charts.release_series || []).length,
+      last_response_ms: latestResponseMs,
+      current_sequence: stats.current_sequence_text,
+      last_completed_sequence: stats.last_completed_sequence,
+      approx_fps: stats.approx_fps,
+      avg_processing_ms: stats.avg_processing_ms,
+    }, null, 2);
+  }
+
+  function render(payload) {
+    const tileSeries = extractSeries(payload, 'tile_series');
+    const motionSeries = extractSeries(payload, 'motion_series');
+    const releaseSeries = extractSeries(payload, 'release_series');
+
+    drawTileChart(canvases.tile, tileSeries);
+    drawResponseChart(canvases.response, tileSeries);
+    drawHoldChart(canvases.hold, tileSeries);
+    drawDirectionChart(canvases.direction, motionSeries);
+    drawSpeedChart(canvases.speed, motionSeries);
+    drawReleaseChart(canvases.release, releaseSeries);
+    drawSequenceChart(canvases.sequence, releaseSeries);
+
+    renderStats(payload);
+  }
+
+  async function fetchCharts() {
+    try {
+      const res = await fetch('/api/charts?limit=200', { cache: 'no-store' });
+      const payload = await res.json();
+      const version = payload?.charts?.version ?? -1;
+      if (payload.server_now_ms) {
+        ctxState.clockOffsetMs = Number(payload.server_now_ms) - Date.now();
+      }
+      if (payload.stats && payload.stats.started_at_ms && !ctxState.startedAtMs) {
+        ctxState.startedAtMs = Number(payload.stats.started_at_ms);
+      }
+      if (version !== ctxState.lastVersion || !ctxState.payload) {
+        ctxState.lastVersion = version;
+        ctxState.payload = payload;
+      } else {
+        // Keep stats fresh even if the series did not change.
+        ctxState.payload = payload;
+      }
+    } catch (err) {
+      statsEl.textContent = `Fetch error: ${err.message || err}`;
+    } finally {
+      setTimeout(fetchCharts, POLL_MS);
+    }
+  }
+
+  function renderLoop(ts) {
+    if (ctxState.payload && ts - ctxState.lastRenderTs >= RENDER_MS) {
+      ctxState.lastRenderTs = ts;
+      render(ctxState.payload);
+    }
+    requestAnimationFrame(renderLoop);
+  }
+
+  window.addEventListener('resize', () => {
+    if (ctxState.payload) render(ctxState.payload);
+  });
+
+  fetchCharts();
+  requestAnimationFrame(renderLoop);
+})();
+</script>
+</body>
+</html>
