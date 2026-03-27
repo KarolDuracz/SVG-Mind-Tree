@@ -1,6 +1,8 @@
 > [!NOTE]
 > This is just a test; I/O performance is terrible, heavy to the system with large numbers of queries. In this naive version, I can see all the logs, all the information in simple JSON format on disk and loaded in real time onto moving graphs. It would be better to do this with threads waiting for wake-up mechanisms, etc., but that's not the purpose of this demo. It's just to answer the question: can these patterns be encoded into graphs for some actions, or a sequence of actions they trigger? Instead of a mouse or keyboard, it's simply for testing in  free time. Just like gesture recognition, etc.
 
+By default, it's supposed to run as a real-time application. Check /main page or /charts to track it, and there's no significant lag in response. There are many statistics measuring various things, so I have very low lag.
+
 
 # Flask Grid Demo — Development Build
 
