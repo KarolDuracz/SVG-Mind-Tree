@@ -4,6 +4,10 @@ This project is a touch-driven 3×3 grid test app for Android browsers and deskt
 <br /><br />
 <h3>To test what can be encoded from these patterns into actions on graphs, etc., a simple tool collects sequences of numbers or single digits, e.g., 1, 6, 2, 45, 989—various patterns from a 3x3 grid. Statistics are collected. You can assign unique graph actions to these patterns. To check if this makes sense.</h3>
 
+> [!IMPORTANT]
+> /charts should automatically shift the charts to the right. Check by clicking on a tile in the client application, such as 1, 2, or another tile individually, whether it's receiving and drawing the chart correctly. Test it this way. If something isn't working, try refreshing only the /charts page. Don't restart the server.
+
+
 ## Routes
 
 - `/` — client board
